@@ -1,31 +1,45 @@
 
 module ContratoCondiciones
-  attr_accessor :before, :after
+  attr_accessor :before, :after, :precondicion, :postcondicion, :invariants, :methods_aliased
+
   def before_and_after_each_method(before, after)
     @before = before
     @after = after
   end
 
-  def pre(&pre)
-    @before = pre
+  def cumpleInvariantes
+    @invariants.all? { |bloque|  self.instance_eval(&bloque)}
   end
 
-  def post(&post)
-    @after = post
+  def invariant(&bloqueInvariant)
+    @invariants ||= []
+    if !@invariants.include?(bloqueInvariant)
+      @invariants << bloqueInvariant
+    end
+  end
+
+  def pre(&antesBloque)
+    @precondicion ||= Proc.new {}
+    @precondicion = antesBloque
+  end
+
+  def post(&despuesBloque)
+    @postcondicion ||=  Proc.new {}
+    @postcondicion = despuesBloque
   end
 
   def method_added(method_name)
     @methods_aliased ||= []
     return if method_name == :method_added || method_name.to_s['original'] || @methods_aliased.include?(method_name)
-
     original_method = 'original_' + method_name.to_s
     alias_method original_method, method_name
     @methods_aliased << method_name
     define_method(method_name) do
     |*arg|
-      self.class.before.call
+      puts self.class.precondicion
+      self.instance_eval(&self.class.before)
       send(original_method,*arg)
-      self.class.after.call
+      self.instance_eval(&self.class.after)
     end
   end
 
@@ -34,9 +48,17 @@ end
 Module.module_eval { prepend ContratoCondiciones }
 
 class B
-
   attr_accessor :divisor
-  #invariant { capacity >= 0 }
+
+  invariant { divisor >= 0 }
+  invariant { divisor != 0 }
+
+  #post { empty? }
+  def initialize(numero)
+    @divisor = numero
+  end
+
+
   pre{divisor != 0}
   post{divisor != 0}
   def saludo1 nombre1, nombre2
@@ -53,15 +75,21 @@ class B
     puts 'chau' + " " + nombre
   end
 
-  def cantidadPersonas cantidad
-    puts 4 + cantidad
+  def cantidadPersonas cantidad, nombre
+    puts 'chau' + " " + "#{4 + cantidad}" + " " + nombre
   end
 end
 
-B.new.saludo1 "Carlos","Alberto"
-B.new.saludo2
-B.new.saludo3 "Carlos"
-B.new.cantidadPersonas 5
+prueba = B.new(4)
+
+prueba.saludo1 "Carlos","Alberto"
+prueba.saludo2
+prueba.saludo3 "Carlos"
+prueba.cantidadPersonas 5 ,"Carlos"
+puts prueba.class.methods_aliased
+
+puts prueba.class.invariants
+#prueba.class.cumpleInvariantes
 
 
 
