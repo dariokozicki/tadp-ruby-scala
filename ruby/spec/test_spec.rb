@@ -1,9 +1,12 @@
+require 'rspec'
+
+require_relative '../lib/prueba'
+
+
 describe Prueba do
-  let(:prueba) { Prueba.new }
+  let(:prueba) { B.new.saludo1 }
 
   describe '#materia' do
-    it 'debería pasar este test' do
-      expect(prueba.materia).to be :tadp
-    end
+
   end
 end

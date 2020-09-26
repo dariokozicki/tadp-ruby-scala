@@ -1,14 +1,16 @@
 
 module ContratoCondiciones
-  attr_accessor :before, :after, :precondicion, :postcondicion, :invariants, :methods_aliased
+  attr_accessor :before, :after, :precondicion, :postcondicion, :invariants, :methods_redefined
 
   def before_and_after_each_method(before, after)
     @before = before
     @after = after
   end
 
-  def cumpleInvariantes
-    @invariants.all? { |bloque|  self.instance_eval(&bloque)}
+  def evaluarInvariantes(contexto)
+    if (!@invariants.all? { |bloque|  contexto.instance_eval(&bloque)})
+      raise Exception.new "Failed to meet invariants"
+    end
   end
 
   def invariant(&bloqueInvariant)
@@ -29,17 +31,25 @@ module ContratoCondiciones
   end
 
   def method_added(method_name)
-    @methods_aliased ||= []
-    return if method_name == :method_added || method_name.to_s['original'] || @methods_aliased.include?(method_name)
-    original_method = 'original_' + method_name.to_s
-    alias_method original_method, method_name
-    @methods_aliased << method_name
+    @methods_redefined ||= []
+    return if method_name == :method_added  || @methods_redefined.include?(method_name)
+    newMethod = self.instance_method(method_name)
+    @methods_redefined << method_name
+    puts method_name
     define_method(method_name) do
     |*arg|
-      puts self.class.precondicion
-      self.instance_eval(&self.class.before)
-      send(original_method,*arg)
-      self.instance_eval(&self.class.after)
+      #puts self.class.invariants
+      #self.class.cumpleInvariantes(self)
+      #puts self.class.precondicion
+      cumplePre = self.instance_eval(&self.class.before)
+      if (!cumplePre.nil?  && !cumplePre )
+        raise Exception.new "Failed to meet precondition"
+      end
+      newMethod.bind(self).(*arg)
+      cumplePost = self.instance_eval(&self.class.after)
+      if(!cumplePost.nil? && !cumplePost)
+        raise Exception.new "Failed to meet postcondition"
+      end
     end
   end
 
@@ -81,15 +91,19 @@ class B
 end
 
 prueba = B.new(4)
+puts prueba
 
 prueba.saludo1 "Carlos","Alberto"
 prueba.saludo2
 prueba.saludo3 "Carlos"
 prueba.cantidadPersonas 5 ,"Carlos"
-puts prueba.class.methods_aliased
+#puts prueba.class.methods_redefined
 
+puts prueba.instance_variables
 puts prueba.class.invariants
-#prueba.class.cumpleInvariantes
+puts prueba
+#prueba.cumpleInvariantes
+#prueba.class.cumpleInvariantes()
 
 
 
