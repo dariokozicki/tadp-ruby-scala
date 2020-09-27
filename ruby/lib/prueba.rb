@@ -1,10 +1,11 @@
 
 module ContratoCondiciones
-  attr_accessor :before, :after, :precondicion, :postcondicion, :invariants, :methods_redefined
+  attr_accessor :precondicion, :postcondicion, :invariants, :methods_redefined
 
-  def before_and_after_each_method(before, after)
-    @before = before
-    @after = after
+  def attr_accessor(*args)
+    @methods_redefined ||= [:initialize]
+    @methods_redefined.push(*args)
+    super(*args)
   end
 
   def evaluarInvariantes(contexto)
@@ -31,36 +32,35 @@ module ContratoCondiciones
   end
 
   def method_added(method_name)
-    @methods_redefined ||= []
-    return if method_name == :method_added  || @methods_redefined.include?(method_name)
+    @methods_redefined ||= [:initialize, :method_name]
+    return if @methods_redefined.include?(method_name)
     newMethod = self.instance_method(method_name)
     @methods_redefined << method_name
-    puts method_name
     define_method(method_name) do
     |*arg|
-      #puts self.class.invariants
-      #self.class.cumpleInvariantes(self)
-      #puts self.class.precondicion
-      cumplePre = self.instance_eval(&self.class.before)
+      cumplePre = self.instance_eval(&self.class.precondicion)
       if (!cumplePre.nil?  && !cumplePre )
         raise Exception.new "Failed to meet precondition"
       end
-      newMethod.bind(self).(*arg)
-      cumplePost = self.instance_eval(&self.class.after)
+      result = newMethod.bind(self).(*arg)
+      cumplePost = self.instance_eval(&self.class.postcondicion)
       if(!cumplePost.nil? && !cumplePost)
         raise Exception.new "Failed to meet postcondition"
       end
+      self.class.evaluarInvariantes(self)
+      return result
     end
   end
-
 end
 
 Module.module_eval { prepend ContratoCondiciones }
 
+#Todo lo de abajo son pruebas, deberian ir al test
+
 class B
   attr_accessor :divisor
 
-  invariant { divisor >= 0 }
+  invariant { divisor <= 4 }
   invariant { divisor != 0 }
 
   #post { empty? }
@@ -68,18 +68,17 @@ class B
     @divisor = numero
   end
 
-
   pre{divisor != 0}
   post{divisor != 0}
   def saludo1 nombre1, nombre2
-    puts 'chau2' + " "+  nombre1 + " " + nombre2
+    return 4
   end
 
+  pre{divisor != 0}
+  post{divisor >= 4}
   def saludo2
-    puts 'chau2'
+    return (saludo1 "asd", "asd") == divisor
   end
-
-  before_and_after_each_method(proc {puts 'antes'},proc{puts 'despues'} )
 
   def saludo3 nombre
     puts 'chau' + " " + nombre
@@ -91,17 +90,23 @@ class B
 end
 
 prueba = B.new(4)
-puts prueba
+#puts prueba
 
-prueba.saludo1 "Carlos","Alberto"
-prueba.saludo2
+puts prueba.saludo1 "Carlos","Alberto"
+puts prueba.saludo2
 prueba.saludo3 "Carlos"
 prueba.cantidadPersonas 5 ,"Carlos"
+
+
+
+
 #puts prueba.class.methods_redefined
 
-puts prueba.instance_variables
-puts prueba.class.invariants
-puts prueba
+#puts prueba.instance_variables
+#puts prueba.class.invariants
+#puts prueba.class.methods_redefined
+#puts prueba.divisor
+#prueba.initialize(5)
 #prueba.cumpleInvariantes
 #prueba.class.cumpleInvariantes()
 
