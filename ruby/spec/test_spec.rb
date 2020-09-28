@@ -1,12 +1,11 @@
-require 'rspec'
+describe Contrato do
+  before do
+    @pila = Pila.new 50
+  end
 
-require_relative '../lib/prueba'
-
-
-describe Prueba do
-  let(:prueba) { B.new.saludo1 }
-
-  describe '#materia' do
-
+  describe '#pila' do
+    it 'initializes as an empty queue' do
+      puts @pila.empty?
+    end
   end
 end
