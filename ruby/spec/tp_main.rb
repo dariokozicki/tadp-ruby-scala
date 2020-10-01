@@ -11,6 +11,8 @@ class Animal
     @energia += gramos * 5
   end
 
+  pre { @energia > 0 }
+  post { @energia < 10 }
   def correr km
     @energia -= km * 2
   end
@@ -60,6 +62,7 @@ class Dogo < Perro
   end
 
   def hacer_sonido
+    @energia = 13
     puts "GGGGRuau GGGGRRuau!"
   end
 end

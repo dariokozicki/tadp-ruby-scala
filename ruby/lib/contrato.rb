@@ -30,6 +30,8 @@ module Contrato
   end
 
   def method_added(method_name)
+    @precondicion ||= self.superclass.precondicion
+    @postcondicion ||= self.superclass.postcondicion
     @invariants ||= self.superclass.invariants
     @methods_redefined ||= %i[initialize method_name alias_matcher]
     return if @methods_redefined.include?(method_name)
