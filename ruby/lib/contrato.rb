@@ -30,24 +30,23 @@ module Contrato
   end
 
   def method_added(method_name)
-    @precondicion ||= self.superclass.precondicion
-    @postcondicion ||= self.superclass.postcondicion
-    @invariants ||= self.superclass.invariants
-    @methods_redefined ||= %i[initialize method_name alias_matcher]
-    return if @methods_redefined.include?(method_name)
+    if !self.name.nil? && (!["RSpec"].include? self.name.split('::').first)
+      @methods_redefined ||= %i[initialize method_name alias_matcher]
+      return if @methods_redefined.include?(method_name)
 
-    new_method = instance_method(method_name)
-    @methods_redefined << method_name
-    define_method(method_name) do |*arg|
-      cumple_pre = self.class.precondicion.nil? || instance_eval(&self.class.precondicion)
-      raise Exception, 'Failed to meet precondition' if !cumple_pre.nil? && !cumple_pre
+      new_method = instance_method(method_name)
+      @methods_redefined << method_name
+      define_method(method_name) do |*arg|
+        cumple_pre = self.class.precondicion.nil? || instance_eval(&self.class.precondicion)
+        raise Exception, 'Failed to meet precondition' if !cumple_pre.nil? && !cumple_pre
 
-      result = new_method.bind(self).call(*arg)
-      cumple_post = self.class.postcondicion.nil? || instance_eval(&self.class.postcondicion)
-      raise Exception, 'Failed to meet postcondition' if !cumple_post.nil? && !cumple_post
+        result = new_method.bind(self).call(*arg)
+        cumple_post = self.class.postcondicion.nil? || instance_eval(&self.class.postcondicion)
+        raise Exception, 'Failed to meet postcondition' if !cumple_post.nil? && !cumple_post
 
-      self.class.evaluar_invariantes(self)
-      return result
+        self.class.evaluar_invariantes(self)
+        return result
+      end
     end
   end
 
