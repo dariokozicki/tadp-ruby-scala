@@ -1,4 +1,3 @@
-#require 'rspec'
 
 require_relative '../lib/contrato'
 Contrato.activate
@@ -12,7 +11,7 @@ class Animal
   end
 
   pre { @energia > 0 }
-  post { @energia < 10 }
+  post { @energia <= 100 }
   def correr km
     @energia -= km * 2
   end
