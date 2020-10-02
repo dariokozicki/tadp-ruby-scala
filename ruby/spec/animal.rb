@@ -48,7 +48,7 @@ class Perro < Animal
   invariant { desesperacion < 100 }
 
   def initialize
-    @energia = 80
+    @energia = 100
     @desesperacion = 10
   end
 
@@ -81,7 +81,7 @@ a.correr 22
 puts "Final"
 =end
 
-describe 'Pruebas de clase' do
+describe 'PRUEBAS EN CLASES' do
   let(:una_clase){
     Animal.new
   }
@@ -121,5 +121,48 @@ describe 'Pruebas de clase' do
     una_clase.correr 15
     expect{ una_clase.comer 7 }.to raise_error("Failed to meet postcondition")
   end
+end
 
+
+
+describe 'PRUEBAS EN SUBCLASES' do
+  let(:una_sub){
+    Perro.new
+  }
+
+  it 'Subclase cumple invariant de super' do
+    una_sub.correr 12
+    una_sub.correr 15
+    expect(una_sub.energia).to eq(46)
+  end
+
+  it 'Subclase NO cumple invariant de super' do
+    una_sub.correr 22
+    una_sub.correr 15
+    expect{ una_sub.correr 18 }.to raise_error("Failed to meet invariants")
+  end
+
+  it 'Subclase cumple precondicion de super' do
+    una_sub.correr 15
+    una_sub.correr 25
+    una_sub.comer 5
+    expect(una_sub.energia).to eq(45)
+  end
+
+  it 'Subclase NO cumple precondicion de super' do
+    una_sub.correr 21
+    una_sub.correr 25
+    expect{ una_sub.comer 5 }.to raise_error("Failed to meet precondition")
+  end
+
+  it 'Subclase cumple postcondicion de super' do
+    una_sub.correr 15
+    una_sub.comer 3
+    expect(una_sub.energia).to eq(85)
+  end
+
+  it 'Subclase NO cumple postcondicion de super' do
+    una_sub.correr 15
+    expect{ una_sub.comer 7 }.to raise_error("Failed to meet postcondition")
+  end
 end
