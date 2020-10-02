@@ -30,7 +30,13 @@ module Contrato
   end
 
   def method_added(method_name)
-    if !self.name.nil? && (!["RSpec"].include? self.name.split('::').first)
+    if !self.name.nil? && (!["RSpec"].include? self.name.split('::').first) && !self.superclass.nil?
+      #Se agregan las invariantes de la superclase
+      if self.invariants.nil? && !self.superclass.invariants.nil?
+        self.invariants ||= []
+        self.invariants = self.invariants + self.superclass.invariants
+      end
+
       @methods_redefined ||= %i[initialize method_name alias_matcher]
       return if @methods_redefined.include?(method_name)
 
