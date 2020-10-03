@@ -1,11 +1,42 @@
+# frozen_string_literal: true
+
 describe Contrato do
   before do
-    @pila = Pila.new 50
+    @pila = Pila.new 5
   end
 
   describe '#pila' do
+    it 'fails to initialize with negative capacity' do
+      expect { Pila.new(-1) }.to raise_exception(InvariantException)
+    end
     it 'initializes as an empty queue' do
-      puts @pila.empty?
+      expect(@pila.empty?).to eql true
+    end
+    it 'fails to pop without elements' do
+      expect { @pila.pop }.to raise_exception(ContractException)
+    end
+    it 'pushes while not full' do
+      [*0...5].each { |num| @pila.push num }
+    end
+    it 'fails to push while full' do
+      expect { [*0...6].each { |num| @pila.push num } }.to raise_exception(ContractException)
+    end
+    it 'gives top of queue' do
+      @pila.push 1
+      expect(@pila.top).to eql 1
+    end
+    it 'fails to give top while empty' do
+      expect{ @pila.top }.to raise_exception(ContractException)
+    end
+    it 'gives height when asked' do
+      expect(@pila.height).to eql 0
+      @pila.push 1
+      expect(@pila.height).to eql 1
+    end
+    it 'is full when it reaches capacity' do
+      expect(@pila.full?).to eql false
+      [*0...5].each { |num| @pila.push num }
+      expect(@pila.full?).to eql true
     end
   end
 end

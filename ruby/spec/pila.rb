@@ -1,6 +1,3 @@
-require_relative '../lib/contrato'
-Contrato.activate
-
 class Pila
   attr_accessor :current_node, :capacity
 

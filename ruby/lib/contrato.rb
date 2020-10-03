@@ -1,17 +1,19 @@
 # frozen_string_literal: true
+require_relative '../lib/contract_exception'
+require_relative '../lib/invariant_exception'
 
 module Contrato
   attr_accessor :precondicion, :postcondicion, :invariants, :methods_redefined
 
   def attr_accessor(*args)
-    @methods_redefined ||= [:initialize]
+    @methods_redefined ||= []
     @methods_redefined.push(*args)
     super(*args)
   end
 
   def evaluar_invariantes(contexto)
-    @invariants ||=[]
-    raise Exception, 'Failed to meet invariants' unless @invariants.all? { |bloque| contexto.instance_eval(&bloque) }
+    @invariants ||= []
+    raise InvariantException, 'Failed to meet invariants' unless @invariants.all? { |bloque| contexto.instance_eval(&bloque) }
   end
 
   def invariant(&bloque_invariant)
@@ -30,25 +32,29 @@ module Contrato
   end
 
   def method_added(method_name)
-    if !self.name.nil? && (!["RSpec"].include? self.name.split('::').first) && !self.superclass.nil?
+    if !self.name.nil? && (!["RSpec"].include? self.name.split('::').first) && respond_to?(:superclass) && !self.superclass.nil?
       #Se agregan las invariantes de la superclase
       if self.invariants.nil? && !self.superclass.invariants.nil?
         self.invariants ||= []
         self.invariants = self.invariants + self.superclass.invariants
       end
 
-      @methods_redefined ||= %i[initialize method_name alias_matcher]
+      @methods_redefined ||= %i[method_name alias_matcher]
       return if @methods_redefined.include?(method_name)
 
       new_method = instance_method(method_name)
       @methods_redefined << method_name
+      pre_block = @precondicion
+      post_block = @postcondicion
+      @precondicion = nil
+      @postcondicion = nil
       define_method(method_name) do |*arg|
-        cumple_pre = self.class.precondicion.nil? || instance_eval(&self.class.precondicion)
-        raise Exception, 'Failed to meet precondition' if !cumple_pre.nil? && !cumple_pre
+        cumple_pre = pre_block.nil? || instance_eval(&pre_block)
+        raise ContractException, 'Failed to meet precondition' if !cumple_pre.nil? && !cumple_pre
 
         result = new_method.bind(self).call(*arg)
-        cumple_post = self.class.postcondicion.nil? || instance_eval(&self.class.postcondicion)
-        raise Exception, 'Failed to meet postcondition' if !cumple_post.nil? && !cumple_post
+        cumple_post = post_block.nil? || instance_eval(&post_block)
+        raise ContractException, 'Failed to meet postcondition' if !cumple_post.nil? && !cumple_post
 
         self.class.evaluar_invariantes(self)
         return result
