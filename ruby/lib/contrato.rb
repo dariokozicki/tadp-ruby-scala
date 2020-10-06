@@ -41,14 +41,47 @@ module Contrato
 
       @methods_redefined ||= %i[method_name alias_matcher]
       return if @methods_redefined.include?(method_name)
-
       new_method = instance_method(method_name)
+
+      aux = new_method.parameters
+      if aux != [] && aux[0].size > 1 && @precondicion != nil
+        parameters = Hash.new
+        aux.each do |elemento|
+          parameters[elemento.last] = nil
+        end
+      end
+
       @methods_redefined << method_name
       pre_block = @precondicion
       post_block = @postcondicion
       @precondicion = nil
       @postcondicion = nil
       define_method(method_name) do |*arg|
+        if arg != [] && pre_block != nil
+          parameters.each_with_index do |(key,value),index|
+            parameters[key] = arg[index]
+          end
+        end
+
+        if !pre_block.nil?
+          variablesInstancia = self.instance_variables
+          parameters.keys.each do |key|
+            if !variablesInstancia.include? key
+              self.singleton_class.send(:attr_accessor, key)
+              self.singleton_class.send(:attr_accessor, :divisor)
+              self.singleton_class.send(:divisor,parameters[key])
+              aux = self.instance_variables
+              indice = aux.length
+              variable = aux[indice-1]
+
+              self.instance_variable_set(variable,parameters[key])
+
+
+            end
+          end
+
+        end
+
         cumple_pre = pre_block.nil? || instance_eval(&pre_block)
         raise ContractException, 'Failed to meet precondition' if !cumple_pre.nil? && !cumple_pre
 

@@ -9,7 +9,8 @@ class Pila
     @current_node = nil
   end
 
-  pre { !full? }
+  #pre { !full? }
+  pre { saludo.size > 0}
   post { height > 0 }
   def push(element)
     @current_node = Node.new(element, current_node)
