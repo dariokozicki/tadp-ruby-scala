@@ -72,10 +72,10 @@ module Contrato
             if !variablesInstancia.include? key
               self.singleton_class.send(:attr_accessor, key)
 
-              aux = key.to_s
-              metodo = "@" + aux
+              keyAux = key.to_s
+              variable = "@" + keyAux
 
-              self.instance_variable_set(metodo.to_sym,parameters[key])
+              self.instance_variable_set(variable.to_sym,parameters[key])
             end
           end
 
