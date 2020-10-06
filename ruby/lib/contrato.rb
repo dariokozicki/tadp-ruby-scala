@@ -68,15 +68,15 @@ module Contrato
           parameters.keys.each do |key|
             if !variablesInstancia.include? key
               self.singleton_class.send(:attr_accessor, key)
-              self.singleton_class.send(:attr_accessor, :divisor)
-              self.singleton_class.send(:divisor,parameters[key])
-              aux = self.instance_variables
-              indice = aux.length
-              variable = aux[indice-1]
-
-              self.instance_variable_set(variable,parameters[key])
-
-
+              #self.singleton_class.send(:attr_accessor, :divisor)
+              #self.singleton_class.send(:divisor,parameters[key])
+              #aux = self.instance_variables
+              #indice = aux.length
+              #variable = aux[indice-1]
+              aux = key.to_s
+              metodo = "@" + aux
+              #metodo.to_sym
+              self.instance_variable_set(metodo.to_sym,parameters[key])
             end
           end
 

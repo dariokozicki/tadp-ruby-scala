@@ -6,15 +6,19 @@ describe Operaciones do
   end
 
   describe '#Argunmentos' do
-    it 'Prueba de division' do
-      @operaciones.dividir(20,10)
-      expect(@operaciones.dividir(20,10) == 2).to eql true
+
+    it 'Prueba de division con 5' do
+      expect(@operaciones.dividir(20,5) == 4).to eql true
     end
 
+    it 'Prueba de division con 0' do
+      expect {@operaciones.dividir(20,0) == 2}.to raise_exception(ContractException)
+    end
 
-    # it 'fails to initialize with negative capacity' do
-    #expect { Pila.new(-1) }.to raise_exception(InvariantException)
-    #end
+    it 'Prueba de division con 10' do
+      #@operaciones.dividir(20,10)
+      expect(@operaciones.dividir(20,10) == 2).to eql true
+    end
 
 
   end
