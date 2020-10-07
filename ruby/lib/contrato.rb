@@ -32,7 +32,7 @@ module Contrato
   end
 
   def method_added(method_name)
-    if !self.name.nil? && (!["RSpec"].include? self.name.split('::').first) && respond_to?(:superclass) && !self.superclass.nil?
+    if !self.name.nil?  && respond_to?(:superclass) && !self.superclass.nil?
       #Se agregan las invariantes de la superclase
       if self.invariants.nil? && !self.superclass.invariants.nil?
         self.invariants ||= []
@@ -68,24 +68,25 @@ module Contrato
         # Los parametros valido que no esten en la instancia con el mismo nombre y los creo con los valores
         if !pre_block.nil?
           variablesInstancia = self.instance_variables
-          parameters.keys.each do |key|
-            if !variablesInstancia.include? key
-              self.singleton_class.send(:attr_accessor, key)
+          if !parameters.nil?
+            parameters.keys.each do |key|
+              if !variablesInstancia.include? key
+                self.singleton_class.send(:attr_accessor, key)
 
-              keyAux = key.to_s
-              variable = "@" + keyAux
+                keyAux = key.to_s
+                variable = "@" + keyAux
 
-              self.instance_variable_set(variable.to_sym,parameters[key])
+                self.instance_variable_set(variable.to_sym,parameters[key])
+              end
             end
           end
-
         end
 
         cumple_pre = pre_block.nil? || instance_eval(&pre_block)
         raise ContractException, 'Failed to meet precondition' if !cumple_pre.nil? && !cumple_pre
 
         result = new_method.bind(self).call(*arg)
-        cumple_post = post_block.nil? || instance_eval(&post_block)
+        cumple_post = post_block.nil? || instance_exec(result, &post_block)
         raise ContractException, 'Failed to meet postcondition' if !cumple_post.nil? && !cumple_post
 
         self.class.evaluar_invariantes(self)
