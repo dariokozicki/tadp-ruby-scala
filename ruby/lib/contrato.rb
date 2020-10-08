@@ -93,7 +93,7 @@ module Contrato
           parameters.keys.each do |element|
             if self.instance_variable_defined? "@" + element.to_s
               self.remove_instance_variable("@" + element.to_s)
-              #self.remove_method :element.to_s
+              self.instance_eval('undef :' + element.to_s)
             end
           end
         end
