@@ -72,22 +72,31 @@ module Contrato
             parameters.keys.each do |key|
               if !variablesInstancia.include? key
                 self.singleton_class.send(:attr_accessor, key)
-
                 keyAux = key.to_s
                 variable = "@" + keyAux
-
                 self.instance_variable_set(variable.to_sym,parameters[key])
               end
             end
           end
         end
 
+        #Evalua condiciones y ejecuto el metodo, luego borro las variables creados de los parametros
         cumple_pre = pre_block.nil? || instance_eval(&pre_block)
         raise ContractException, 'Failed to meet precondition' if !cumple_pre.nil? && !cumple_pre
 
         result = new_method.bind(self).call(*arg)
+
         cumple_post = post_block.nil? || instance_exec(result, &post_block)
         raise ContractException, 'Failed to meet postcondition' if !cumple_post.nil? && !cumple_post
+
+        if !parameters.nil?
+          parameters.keys.each do |element|
+            if self.instance_variable_defined? "@" + element.to_s
+              self.remove_instance_variable("@" + element.to_s)
+              #self.remove_method :element.to_s
+            end
+          end
+        end
 
         self.class.evaluar_invariantes(self)
         return result

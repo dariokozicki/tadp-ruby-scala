@@ -2,7 +2,7 @@
 
 describe Operaciones do
   before do
-    @operaciones = Operaciones.new(10,20)
+    @operaciones = Operaciones.new()
   end
 
   describe '#Argunmentos' do
