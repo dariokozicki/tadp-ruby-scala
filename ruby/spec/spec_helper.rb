@@ -1,7 +1,6 @@
 require 'rspec'
 
-require_relative '../lib/contrato'
-Contrato.activate
-require_relative 'pila'
-require_relative 'animal'
-require_relative 'operaciones'
+require_relative '../lib/precondition'
+require_relative '../lib/postcondition'
+require_relative '../lib/contract'
+require_relative 'Persona'
