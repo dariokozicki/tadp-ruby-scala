@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class Persona
-  include Contract
   attr_accessor :energia
 
   def initialize(energia)
@@ -13,18 +12,18 @@ class Persona
     proc { puts 'before ' },
     proc { puts 'after' }
   )
-  invariant do
-    puts 'invariante de energia'
-    energia >= 0
-  end
+  invariant { puts 'invariante de energia';energia >= 0}
 
   pre { puts 'el pre de hablar'; energia != 0 }
   post { puts 'el post de hablar'; energia != 0 }
+  post { puts 'el otro post de hablar'}
   def hablar
     puts 'Hola'
     'Hola'
   end
 
+  pre { puts 'el pre de correr'}
+  post { puts 'esto no va a correr porque se rompe la invariante'}
   def correr
     puts 'correr'
     @energia = -1
