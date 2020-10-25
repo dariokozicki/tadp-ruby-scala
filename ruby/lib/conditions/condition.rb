@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-
 class Condition
   attr_accessor :conditional_block
   attr_accessor :conditional_strategy

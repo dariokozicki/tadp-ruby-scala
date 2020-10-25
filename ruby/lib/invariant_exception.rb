@@ -1,3 +1,0 @@
-class InvariantException < StandardError
-
-end

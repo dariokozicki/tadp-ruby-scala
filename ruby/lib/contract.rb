@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
-Dir['./lib/*'].sort.each { |file| require file }
+require_relative '../lib/conditions/condition'
+require_relative '../lib/conditions/strategies/each_call'
+require_relative '../lib/conditions/strategies/specific_call'
+
 module Contract
   attr_writer :preconditions, :postconditions, :methods_redefined
   def preconditions
@@ -26,34 +29,34 @@ module Contract
     end
 
     define_method(method_name) do |*arg, &block|
-      self.class.guarantee(self.class.preconditions, self, method_name, *arg)
+      self.class.guarantee(:preconditions, self, method_name, *arg)
 
       result = old_method.bind(self).call(*arg, &block)
-      self.class.guarantee(self.class.postconditions, self, method_name, *arg)
+      self.class.guarantee(:postconditions, self, method_name, *arg)
 
       result
     end
   end
 
-  def guarantee(conditions, instance, method_name, *arg)
-    conditions.all? { |precond| precond.passes(instance, method_name, *arg) }
+  def guarantee(conditions_sym, instance, method_name, *arg)
+    ancestors.flat_map(&conditions_sym).all? { |precond| precond.passes(instance, method_name, *arg) }
   end
 
   def before_and_after_each_method(precondition_block, postcondition_block)
-    preconditions << Precondition.new(precondition_block, EachCall.new)
-    postconditions << Postcondition.new(postcondition_block, EachCall.new)
+    preconditions << Condition.new(precondition_block, EachCall.new)
+    postconditions << Condition.new(postcondition_block, EachCall.new)
   end
 
   def pre(&before_block)
-    preconditions << Precondition.new(before_block, SpecificCall.new)
+    preconditions << Condition.new(before_block, SpecificCall.new)
   end
 
   def post(&after_block)
-    postconditions << Postcondition.new(after_block, SpecificCall.new)
+    postconditions << Condition.new(after_block, SpecificCall.new)
   end
 
   def invariant(&block)
-    postconditions << Postcondition.new(block, EachCall.new)
+    postconditions << Condition.new(block, EachCall.new)
   end
 
   def attr_accessor(*args) # es necesario para evitar recursividad

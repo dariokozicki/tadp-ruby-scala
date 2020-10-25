@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-Dir['./lib/*'].sort.each { |file| require file }
+require_relative 'conditional_strategy'
 
 class SpecificCall
   include ConditionalStrategy

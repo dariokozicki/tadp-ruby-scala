@@ -1,4 +1,4 @@
-Dir['./lib/*'].sort.each { |file| require file }
+require_relative 'conditional_strategy'
 
 class EachCall
   include ConditionalStrategy
