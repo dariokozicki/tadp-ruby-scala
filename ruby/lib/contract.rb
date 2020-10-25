@@ -32,8 +32,8 @@ module Contract
     end
 
     def before_and_after_each_method(precondition_block, postcondition_block)
-      preconditions << Precondition.new(precondition_block, EachCall.new)
-      postconditions << Postcondition.new(postcondition_block, EachCall.new)
+      pre(&precondition_block)
+      post(&postcondition_block)
     end
 
     def pre(&before_block)
@@ -45,7 +45,7 @@ module Contract
     end
 
     def invariant(&block)
-      postconditions << Postcondition.new(block, EachCall.new)
+      post(&block)
     end
 
     def attr_accessor(*args)

@@ -13,7 +13,10 @@ class Persona
     proc { puts 'before ' },
     proc { puts 'after' }
   )
-  invariant { energia >= 0 }
+  invariant do
+    puts 'invariante de energia'
+    energia >= 0
+  end
 
   def hablar
     puts 'Hola'
