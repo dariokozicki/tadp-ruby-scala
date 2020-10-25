@@ -12,4 +12,12 @@ class Condition
   def passes(instance, method_name, *arg)
     @conditional_strategy.passes(instance, @conditional_block, method_name, *arg)
   end
+
+  def method_name=(method_name)
+    conditional_strategy.method_name = method_name
+  end
+
+  def method_name
+    conditional_strategy.method_name
+  end
 end

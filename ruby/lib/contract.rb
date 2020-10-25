@@ -21,6 +21,11 @@ module Contract
 
       methods_redefined << method_name
       old_method = instance_method(method_name)
+      (postconditions + preconditions)
+        .each do |cond|
+        cond.method_name = method_name if cond.method_name.nil?
+      end
+
       define_method(method_name) do |*arg|
         self.class.preconditions.all? { |precond| precond.passes(self, method_name, *arg) }
 
@@ -32,20 +37,20 @@ module Contract
     end
 
     def before_and_after_each_method(precondition_block, postcondition_block)
-      pre(&precondition_block)
-      post(&postcondition_block)
+      preconditions << Precondition.new(precondition_block, EachCall.new)
+      postconditions << Postcondition.new(postcondition_block, EachCall.new)
     end
 
     def pre(&before_block)
-      preconditions << Precondition.new(before_block, EachCall.new)
+      preconditions << Precondition.new(before_block, SpecificCall.new)
     end
 
     def post(&after_block)
-      postconditions << Postcondition.new(after_block, EachCall.new)
+      postconditions << Postcondition.new(after_block, SpecificCall.new)
     end
 
     def invariant(&block)
-      post(&block)
+      postconditions << Postcondition.new(block, EachCall.new)
     end
 
     def attr_accessor(*args)

@@ -18,6 +18,8 @@ class Persona
     energia >= 0
   end
 
+  pre { puts 'el pre de hablar'; energia != 0 }
+  post { puts 'el post de hablar'; energia != 0 }
   def hablar
     puts 'Hola'
     'Hola'

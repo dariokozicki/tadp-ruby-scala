@@ -6,4 +6,12 @@ class EachCall
     res = instance.instance_exec(*arg, &block)
     raiseOnFalse res
   end
+
+  def method_name=(method_name)
+    nil #do nothing
+  end
+
+  def method_name
+    'Undefined'
+  end
 end
