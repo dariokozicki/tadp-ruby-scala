@@ -1,12 +1,15 @@
 require_relative '../../exceptions/contract_exception'
 module ConditionalStrategy
-  def passes(instance, conditional_block, method_name, *arg)
+  def passes(instance, block, _method_name, result, *arg)
+    res = instance.instance_exec(result, *arg, &block)
+    raise ContractException if res == false
+  end
+
+  def method_data=(_method_data)
     raise 'Not implemented'
   end
 
-  def raiseOnFalse(result)
-    raise ContractException if result == false # no uso !result porque podria no ser un booleano
-
-    true
+  def method_data
+    raise 'Not implemented'
   end
 end

@@ -1,23 +1,16 @@
 # frozen_string_literal: true
 
 require_relative 'conditional_strategy'
+require_relative '../condition_runner'
 
 class SpecificCall
   include ConditionalStrategy
-  attr_accessor :method_name
+  attr_accessor :method_data
 
-  def passes(instance, block, method_name, *arg)
-    return true unless method_name == @method_name
+  def passes(instance, block, method_name, result, args)
+    return true unless method_name == @method_data.method_name
 
-    res = instance.instance_exec(&block)
-    raiseOnFalse res
-  end
-
-  def method_name=(method_name)
-    @method_name = method_name
-  end
-
-  def method_name
-    @method_name
+    runner = ConditionRunner.new(instance, @method_data.args.zip(args))
+    super(runner, block, method_name, result, args)
   end
 end

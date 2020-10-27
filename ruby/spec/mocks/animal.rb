@@ -7,13 +7,13 @@ class Animal
     @inmovil = false
   end
 
-  pre { @energia > 10 }
-  post { @energia <= 100 }
+  pre { energia > 10 }
+  post { energia <= 100 }
   def comer gramos
     @energia += gramos * 5
   end
 
-  post { @energia <= 100 }
+  post { energia <= 100 }
   def correr km
     @energia -= km * 2
     @inmovil = true
