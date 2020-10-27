@@ -14,7 +14,7 @@ class ConditionRunner
     @instance.send(method_name, *args, &block)
   end
 
-  def respond_to_missing?(method_name, _include_private = false)
+  def respond_to_missing?(method_name)
     @instance.respond_to? method_name
   end
 end

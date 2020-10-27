@@ -26,10 +26,8 @@ module Contract
     condition_method_data_set(method_name)
     define_method(method_name) do |*arg, &block|
       self.class.guarantee(:preconditions, self, method_name, arg)
-
       result = old_method.bind(self).call(*arg, &block)
       self.class.guarantee(:postconditions, self, method_name, arg, result)
-
       result
     end
   end
@@ -62,21 +60,6 @@ module Contract
 
   def invariant(&block)
     postconditions << Condition.new(block, EachCall.new)
-  end
-
-  def attr_accessor(*args) # es necesario para evitar recursividad
-    methods_redefined.push(*args)
-    super(*args)
-  end
-
-  def attr_reader(*args)
-    methods_redefined.push(*args)
-    super(*args)
-  end
-
-  def attr_writer(*args)
-    methods_redefined.push(*args)
-    super(*args)
   end
 
   def self.activate

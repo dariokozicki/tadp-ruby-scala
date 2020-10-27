@@ -1,6 +1,6 @@
 describe Animal do
   describe 'PRUEBAS EN CLASES' do
-    let(:una_clase){
+    let(:una_clase) {
       Animal.new
     }
 
@@ -13,7 +13,7 @@ describe Animal do
     it 'Clase NO cumple invariant' do
       una_clase.correr 22
       una_clase.correr 15
-      expect{ una_clase.correr 18 }.to raise_exception ContractException
+      expect { una_clase.correr 18 }.to raise_exception ContractException
     end
 
     it 'Clase cumple precondicion' do
@@ -26,7 +26,7 @@ describe Animal do
     it 'Clase NO cumple precondicion' do
       una_clase.correr 21
       una_clase.correr 25
-      expect{ una_clase.comer 5 }.to raise_exception ContractException
+      expect { una_clase.comer 5 }.to raise_exception ContractException
     end
 
     it 'Clase cumple postcondicion' do
@@ -37,12 +37,12 @@ describe Animal do
 
     it 'Clase NO cumple postcondicion' do
       una_clase.correr 15
-      expect{ una_clase.comer 7 }.to raise_exception ContractException
+      expect { una_clase.comer 7 }.to raise_exception ContractException
     end
   end
 
   describe 'PRUEBAS EN SUBCLASES' do
-    let(:una_sub){
+    let(:una_sub) {
       Perro.new
     }
 
@@ -55,7 +55,7 @@ describe Animal do
     it 'Subclase NO cumple invariant de super' do
       una_sub.correr 22
       una_sub.correr 15
-      expect{ una_sub.correr 18 }.to raise_exception ContractException
+      expect { una_sub.correr 18 }.to raise_exception ContractException
     end
 
     it 'Subclase cumple precondicion de super' do
@@ -68,7 +68,7 @@ describe Animal do
     it 'Subclase NO cumple precondicion de super' do
       una_sub.correr 21
       una_sub.correr 25
-      expect{ una_sub.comer 5 }.to raise_exception ContractException
+      expect { una_sub.comer 5 }.to raise_exception ContractException
     end
 
     it 'Subclase cumple postcondicion de super' do
@@ -79,12 +79,12 @@ describe Animal do
 
     it 'Subclase NO cumple postcondicion de super' do
       una_sub.correr 15
-      expect{ una_sub.comer 7 }.to raise_exception ContractException
+      expect { una_sub.comer 7 }.to raise_exception ContractException
     end
   end
 
   describe 'PRUEBAS EN SUBCLASE DE SUBCLASE' do
-    let(:una_sub_sub){
+    let(:una_sub_sub) {
       Dogo.new
     }
 
@@ -97,7 +97,7 @@ describe Animal do
     it 'Sub-subclase NO cumple invariant de super' do
       una_sub_sub.correr 22
       una_sub_sub.correr 15
-      expect{ una_sub_sub.correr 18 }.to raise_exception ContractException
+      expect { una_sub_sub.correr 18 }.to raise_exception ContractException
     end
 
     it 'Sub-subclase cumple precondicion de super' do
@@ -110,7 +110,7 @@ describe Animal do
     it 'Sub-subclase NO cumple precondicion de super' do
       una_sub_sub.correr 21
       una_sub_sub.correr 25
-      expect{ una_sub_sub.comer 5 }.to raise_exception ContractException
+      expect { una_sub_sub.comer 5 }.to raise_exception ContractException
     end
 
     it 'Sub-subclase cumple postcondicion de super' do
@@ -121,7 +121,7 @@ describe Animal do
 
     it 'Sub-subclase NO cumple postcondicion de super' do
       una_sub_sub.correr 15
-      expect{ una_sub_sub.comer 7 }.to raise_exception ContractException
+      expect { una_sub_sub.comer 7 }.to raise_exception ContractException
     end
   end
 end
