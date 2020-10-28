@@ -7,6 +7,10 @@ class SpecificCall
   include ConditionalStrategy
   attr_accessor :method_data
 
+  def initialize
+    @active = true
+  end
+
   def passes(instance, block, method_name, result, args)
     return true unless method_name == @method_data.method_name
 
