@@ -12,7 +12,7 @@ class SpecificCall
   end
 
   def passes(instance, block, method_name, result, args)
-    return true unless method_name == @method_data.method_name
+    return true unless method_name == @method_data.method_name && @active
 
     runner = ConditionRunner.new(instance, @method_data.args.zip(args))
     super(runner, block, method_name, result, args)
