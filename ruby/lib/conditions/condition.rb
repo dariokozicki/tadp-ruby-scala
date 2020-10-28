@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 class Condition
-  attr_accessor :conditional_block
-  attr_accessor :conditional_strategy
+  attr_accessor :conditional_block, :conditional_strategy
 
   def initialize(conditional_block, conditional_strategy)
     @conditional_strategy = conditional_strategy

@@ -4,8 +4,9 @@ require_relative '../lib/conditions/condition'
 require_relative '../lib/conditions/strategies/each_call'
 require_relative '../lib/conditions/strategies/specific_call'
 require_relative '../lib/conditions/strategies/method/method_data'
+require_relative '../lib/contractor'
 
-module Contract
+class Contract
   attr_writer :preconditions, :postconditions, :methods_redefined
   def preconditions
     @preconditions ||= []
@@ -19,26 +20,12 @@ module Contract
     @methods_redefined ||= []
   end
 
-  def method_added(method_name)
-    return if methods_redefined.include? method_name
-
-    old_method = instance_method(method_name)
-    condition_method_data_set(method_name)
-    define_method(method_name) do |*arg, &block|
-      self.class.guarantee(:preconditions, self, method_name, arg)
-      result = old_method.bind(self).call(*arg, &block)
-      self.class.guarantee(:postconditions, self, method_name, arg, result)
-      result
-    end
-  end
-
   def guarantee(conditions_sym, instance, method_name, arg, result = nil)
-    ancestors.flat_map(&conditions_sym).each { |cond| cond.passes(instance, method_name, result, arg) }
+    instance.class.ancestors.flat_map{ |anc| anc.contract.send(conditions_sym) }.each { |cond| cond.passes(instance, method_name, result, arg) }
   end
 
-  def condition_method_data_set(method_name)
-    methods_redefined << method_name
-    method_data = MethodData.new(method_name, instance_method(method_name).parameters.map{ |params| params[1]})
+  def condition_method_data_set(method_data)
+    methods_redefined << method_data.method_name
     (postconditions + preconditions)
       .each do |cond|
       cond.method_data = method_data if cond.method_data.nil?
@@ -62,7 +49,8 @@ module Contract
     postconditions << Condition.new(block, EachCall.new)
   end
 
-  def self.activate
-    Module.prepend(Contract)
+  def redefined?(method_name)
+    methods_redefined.include? method_name
   end
+
 end
