@@ -1,6 +1,4 @@
-import com.sun.net.httpserver.Authenticator.Success
 
-import scala.util.Try
 
 
 package object Parsers {
@@ -11,7 +9,7 @@ package object Parsers {
     //def resultad[T]() = resultado
   }
 
-  class ParseoException(val parser: ResultParser) extends RuntimeException
+  case class ParseoException(val parser: ResultParser) extends RuntimeException
 
   //class modificadores(primero: Parser, segundo: Parser) extends Parser //para modificadores podria utilizar Implicit Class
 
@@ -22,7 +20,8 @@ package object Parsers {
 
 
   def Failure(parser: ResultParser, error: Exception): ResultParser = {
-    ResultParser(parser.sinConsumir, null)
+    //ResultParser(parser.sinConsumir, null)
+    throw ParseoException(parser)
   }
 
   def Success(parser: ResultParser, result: Any): ResultParser = {
@@ -50,6 +49,19 @@ package object Parsers {
     case error: Exception => Failure(parser, error)
   }
 
+  def digit(texto: String): ResultParser = digit(ResultParser(texto, null))
+  def digit(parser: ResultParser): ResultParser = try {
+
+    def condicion(caracter: Char) = caracter.isDigit
+
+    parsearInput(condicion(parser.sinConsumir.head), parser, parser.sinConsumir.head.asDigit)
+
+  }
+  catch {
+    case error: Exception => Failure(parser, error)
+  }
+
+
   def parsearInput(condicion: Boolean, parser: ResultParser, resultado: Any): ResultParser = try {
     if (condicion) Success(parser, resultado)
     else throw new ParseoException(parser)
@@ -59,5 +71,13 @@ package object Parsers {
 
 }
 
+object prueba{
+  def main(args: Array[String]): Unit ={
+    val result = 'c'.isDigit
+    var caracter: Char = 'c'
+    caracter.isDigit
+  }
+
+}
 
 //Para generar el AST usar Macros y QuasiCotes
