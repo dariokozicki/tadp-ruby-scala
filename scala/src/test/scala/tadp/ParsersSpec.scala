@@ -12,7 +12,7 @@ class ParserTest extends AnyFlatSpec{
   def testAssertVerdeYResultado[T](actualResultado: Try[Salida[T]], resultadoEsperado: Salida[T]): Unit = {
     actualResultado.get shouldBe resultadoEsperado
   }
-  def testAssertFallo[T](actualResultado: ⇒ Try[Salida[T]]): Unit = {
+  def testAssertFallo[T](actualResultado: => Try[Salida[T]]): Unit = {
     intercept[ParserException] { actualResultado.get }
   }
 
@@ -71,8 +71,12 @@ class ParserTest extends AnyFlatSpec{
   }
 
   // Test de String
-  it should "Test de string buscando Hola, con string Hola Mundo " in{
-    testAssertVerdeYResultado(string("Hola")("Hola Mundo!"),("Hola","Mundo!"))
+  it should "Test de string buscando Hola, con string Hola Mundo! " in{
+    testAssertVerdeYResultado(string("Hola")("Hola Mundo!"),("Hola"," Mundo!"))
+  }
+
+  it should "Test de string buscando Hola, con string HolaMundo! " in{
+    testAssertVerdeYResultado(string("Hola")("HolaMundo!"),("Hola","Mundo!"))
   }
   it should "Test de string buscando Hola, con string Holgado " in{
     testAssertFallo(string("Hola")("Holgado"))
