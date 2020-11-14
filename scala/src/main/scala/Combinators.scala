@@ -40,11 +40,11 @@ package object Combinators {
       (resultado, restoTransformacion) <- parser1(entrada)
     } yield (funcionTransformacion(resultado), restoTransformacion)
 
-    def * : Parser[List[T]] = input => Success(kleeneWithAccumulator((List(), input)))
-    private def kleeneWithAccumulator(accum: Salida[List[T]]): Salida[List[T]] = {
+    def * : Parser[List[T]] = input => Success(kleene((List(), input)))
+    private def kleene(accum: Salida[List[T]]): Salida[List[T]] = {
       parser1(accum._2).fold(
         _ => accum,
-        { case (nuevoResultado, nuevoResto) => kleeneWithAccumulator((accum._1 :+ nuevoResultado, nuevoResto)) }
+        { case (nuevoResultado, nuevoResto) => kleene((accum._1 :+ nuevoResultado, nuevoResto)) }
       )
     }
 

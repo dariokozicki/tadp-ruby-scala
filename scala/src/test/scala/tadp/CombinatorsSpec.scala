@@ -39,7 +39,7 @@ class CombinatorsTest extends AnyFlatSpec{
 
   // TODO: Revisar caso con string holaMundo
   it should "Test de Combinators Concat con 'holaMundo' " in{
-    testAssertVerdeYResultado(holaMundo("holamundo"),(("hola","mundo")))
+    testAssertVerdeYResultado(holaMundo("holamundo"),(("hola","mundo"),""))
   }
   it should "Test de Combinators Concat con 'holachau' " in{
     testAssertFallo(holaMundo("holachau"))
@@ -48,7 +48,7 @@ class CombinatorsTest extends AnyFlatSpec{
   // Val de combinators sepBy
   val numeroDeTelefono = integer.sepBy(char('-'))
 
-  it should "Test de Combinators sepBy con '“1234 5678”' " in{
+  it should "Test de Combinators sepBy con '“1234-5678”' " in{
     testAssertVerdeYResultado(numeroDeTelefono("1234-5678"),("1234","5678"))
   }
   it should "Test de Combinators sepBy con 'holaChau' " in{
