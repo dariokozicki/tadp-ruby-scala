@@ -1,97 +1,68 @@
 package tadp
 
-import scalafx.scene.canvas.Canvas
 import scalafx.scene.paint.Color
 import tadp.internal.TADPDrawingAdapter
 
 object TADPDrawingApp extends App {
 
-  // Codigo de ejemplo en el repo
-  /*
-  TADPDrawingAdapter
-    .forScreen { adapter =>
-      adapter
-        .beginColor(Color.rgb(100, 100, 100))
-        .rectangle((200, 200), (400, 400))
-        .end()
-    }
-
-   */
-  val appWidth = 1024
-  val appHeight = 640
-
-  val canvas = new Canvas(appWidth, appHeight)
-  val adapterGlobal = TADPDrawingAdapter(canvas)
-
-  def color(adapter:TADPDrawingAdapter, rojo:Int, verde: Int, azul:Int) =
-    adapter.beginColor(Color.rgb(rojo,verde,azul));
-
   sealed trait Figuras
+  sealed trait Transformaciones
   case class Triangulo(puntos: List[Puntos]) extends Figuras
   case class Rectangulo(puntos: List[Puntos]) extends Figuras
-  case class Circulo(puntos: List[Puntos]) extends Figuras
-  //case class Grupo(figuras: List[Figura]) extends Figuras
-
+  case class Circulo(puntos: Puntos, radio: Int) extends Figuras
+  case class ColorTransformacion(r:Int,G:Int,b:Int, grupo:List[Figuras]) extends Transformaciones
+  case class Rotacion(grados:Double,grupo: List[Figuras]) extends Transformaciones
+  case class Escala(x: Double, y:Double,grupo: List[Figuras]) extends Transformaciones
+  case class Traslacion(x:Double,y:Double,grupo: List[Figuras]) extends Transformaciones
+  case class Grupo(figuras: List[Figura]) extends Figuras
 
   type Puntos = (Double,Double)
   type Figura = (List[String] => FiguraAux)
   type FiguraAux = Figuras
-  type Grupo = List[Figura]
-  type Grupos[R] = List[R]
-
-  def dibujarTriangulo(adaptador: TADPDrawingAdapter, puntos:List[Puntos] ): TADPDrawingAdapter ={
-    adaptador.triangle(puntos.head,puntos(0),puntos(1))
-  }
-
-  def dibujarRectangulo(adaptador: TADPDrawingAdapter, puntos:List[Puntos] ): TADPDrawingAdapter ={
-    adaptador.rectangle(puntos.head,puntos(0))
-  }
-
+  type Agrupacion = Figura
+  type Grupos[T] = List[T]
 
   def triangulo: Figura = entrada => {
     val aux = new PuntoRegex(entrada, 3)
     val puntos: List[Puntos] = aux.parsear()
-    dibujar()
+    TADPDrawingAdapter
+      .forScreen { adapter =>
+        //dibujarTriangulo(adapter,List((45,88),(56,675),(63,12)))
+        adapter.beginColor(Color.rgb(23, 234, 35))
+          .triangle((45,88),(56,675),(63,12)).end().beginColor(Color.rgb(43, 23, 12)).rectangle((343,443),(445,543)).end()
+      }
     new Triangulo(puntos)
   }
 
-  def dibujarFigura(adaptador:TADPDrawingAdapter, figura:Figuras): TADPDrawingAdapter ={
-    figura match{
-      case Triangulo(puntos)           => adaptador.triangle(puntos.head,puntos(0),puntos(1))
-      case Rectangulo(puntos)          => adaptador.rectangle(puntos.head,puntos(0))
+  def dibujarConTransformacion(transformacion: Transformaciones) = {
+    transformacion match {
+      case ColorTransformacion(r,g,b,grupo) => TADPDrawingAdapter
+        .forScreen { adapter =>
+          val adaptador = adapter.beginColor(Color.rgb(r, g, b))
+          dibujarGrupo(adaptador,grupo)
+        }
+      case Rotacion(grados,grupo) => TADPDrawingAdapter
+        .forScreen { adapter =>
+          val adaptador = adapter.beginRotate(grados)
+          dibujarGrupo(adaptador,grupo)
+        }
     }
   }
 
-  /*def dibujarGrupo[T] (adaptador:TADPDrawingAdapter,grupo: Grupo[T]): Unit ={
+  def dibujarGrupo (adaptador:TADPDrawingAdapter, grupo: List[Figuras]): Unit ={
     for(nodo <- grupo)
       nodo match {
-        //case Figura(puntos) => dibujarFigura(adaptador,figura)
-        //case Grupo() => dibujarGrupo(adaptador,grupo)
+        case Triangulo(puntos)           => adaptador.triangle(puntos.head,puntos(0),puntos(1))
+        case Rectangulo(puntos)          => adaptador.rectangle(puntos.head,puntos(0))
+        case Circulo(puntos,radio)       => adaptador.circle(puntos,radio)
+        case Grupo(figuras) => dibujarGrupo(adaptador,grupo)
       }
-  }*/
-
-  def dibujar(): Unit ={
-    TADPDrawingAdapter
-      .forScreen { adapter =>
-        val adaptador = adapter.beginColor(Color.rgb(100, 100, 100))
-        //dibujarTriangulo(adaptador,List((34,56),(54,24),(63,12)))
-        //dibujarRectangulo(adaptador,List((34,56),(54,24)))
-        dibujarFigura(adaptador, Triangulo(List((34,56),(54,24),(63,12))))
-        dibujarFigura(adaptador, Rectangulo(List((50,100),(40,124))))
-        adaptador.end()
-          //dibujarFigura(adapter, Triangulo(List((34,56),(54,24),(63,12))))
-        //dibujarFigura(adapter, Rectangulo(List((50,100),(40,124))))
-        /*for(figura <- grupo)
-          figura match {
-            //case Circulo()             => dibujarCirculo(adapter,puntos)
-            //case Grupo               => iterarGrupo(grupo)
-          }*/
-
-      }
+    adaptador.end()
   }
 
-  def grupo[R](input: Grupos[R]): Unit = {
 
+
+  def grupo[R](input: Grupos[R]): Unit = {
     input match {
       case grupo: List[Grupo] => {
         println("Entre a List[Grupo]")
@@ -120,7 +91,7 @@ object TADPDrawingApp extends App {
       }
       array.toList
     }
-     catch {
+    catch {
       case error: Exception => throw error
     }
   }
