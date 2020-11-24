@@ -2,6 +2,8 @@ package tadp
 
 import scalafx.scene.paint.Color
 import tadp.internal.TADPDrawingAdapter
+import Combinators._
+import grupo3.ParsersTadp._
 
 object TADPDrawingApp extends App {
 
@@ -22,16 +24,14 @@ object TADPDrawingApp extends App {
   type Agrupacion = Figura
   type Grupos[T] = List[T]
 
+  def dibujarTriangulo(adaptador: TADPDrawingAdapter, puntos: List[Puntos] ): Unit ={
+    adaptador.triangle(puntos.head,puntos(0),puntos(1)).end()
+  }
+
   def triangulo: Figura = entrada => {
     val aux = new PuntoRegex(entrada, 3)
     val puntos: List[Puntos] = aux.parsear()
-    TADPDrawingAdapter
-      .forScreen { adapter =>
-        //dibujarTriangulo(adapter,List((45,88),(56,675),(63,12)))
-        adapter.beginColor(Color.rgb(23, 234, 35))
-          .triangle((45,88),(56,675),(63,12)).end().beginColor(Color.rgb(43, 23, 12)).rectangle((343,443),(445,543)).end()
-      }
-    new Triangulo(puntos)
+    Triangulo(puntos)
   }
 
   def dibujarConTransformacion(transformacion: Transformaciones) = {
@@ -49,13 +49,18 @@ object TADPDrawingApp extends App {
     }
   }
 
-  def dibujarGrupo (adaptador:TADPDrawingAdapter, grupo: List[Figuras]): Unit ={
+  def dibujarGrupo(adaptador:TADPDrawingAdapter, grupo: List[Figuras]): Unit ={
+    //cambiar por Foldeo que reciba y devuelva el nuevo adapter
     for(nodo <- grupo)
       nodo match {
         case Triangulo(puntos)           => adaptador.triangle(puntos.head,puntos(0),puntos(1))
         case Rectangulo(puntos)          => adaptador.rectangle(puntos.head,puntos(0))
         case Circulo(puntos,radio)       => adaptador.circle(puntos,radio)
         case Grupo(figuras) => dibujarGrupo(adaptador,grupo)
+        /*case ColorTransformacion(r,g,b,figuras) => {
+          adaptador.beginColor(Color.rgb(r,g,b))
+          dibujarGrupo(adaptador,figuras)
+        }*/
       }
     adaptador.end()
   }
@@ -75,7 +80,10 @@ object TADPDrawingApp extends App {
   }
 
   class PuntoRegex(input: List[String], cantCoordenadas: Int) {
-    val coordenadaRegex = "([0-9]+ @ [0-9]+)".r
+    val coordenadaRegex = "[([0-9]+ @ [0-9]+)]".r
+
+    val coordenadaTriangulo = "triangulo\\[([0-9]+\\s*@\\s*[0-9]+,?\\s*){3}\\]".r
+
     val puntoRegex = "([0-9]+) @ ([0-9]+)".r
 
     def parsear(): List[Puntos] = try {
@@ -95,6 +103,28 @@ object TADPDrawingApp extends App {
       case error: Exception => throw error
     }
   }
+
+  def parsearBloqueEntrada(entrada: String): Unit ={
+    val resultParser = string("grupo(")(entrada)
+    print(resultParser)
+  }
+
+  val parserEntrada = (parserTransformacion <|> parserGrupo) <|> parserFigura <|> parserPunto
+  val parserFigura = (parserTriangulo <|> parserCirculo) <|> parserRectangulo
+  val parserGrupo = string("grupo(")
+  var parserTransformacion = (parserColor <|> parserRotacion) <|> (parserTraslacion <|> parserEscala)
+  val parserTriangulo = string("triangulo[")
+  val parserCirculo = string("circulo[")
+  val parserRectangulo = string("rectangulo[")
+  val parserColor = string("color[")
+  val parserRotacion = string("rotacion[")
+  val parserTraslacion = string("traslacion[")
+  val parserEscala = string("escala[")
+  val parserPunto = integer.sepBy(string(" @ "))
+  val parserInicioGrupo = char('(')
+  val parserFinGrupo = char(')')
+  val parserFinFigura = char(']')
+  val parserValor = integer.sepBy(char(','))
 
 }
 
