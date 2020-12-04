@@ -1,8 +1,9 @@
 package grupo3
 import Combinators._
 
+import scala.util
 import scala.util.matching.Regex
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 object ParsersTadp {
 
@@ -20,12 +21,15 @@ object ParsersTadp {
   val char: Char => Parser[Char] = char => anyChar.condicion(_ == char)
   val digit: Parser[Char] = anyChar.condicion(_.isDigit)
 
-  val string: String => Parser[String] = string => iterarString(_,string)
+  val string: String => Parser[String] = string => regexMatcher(string.r, (input) => input)
 
   def regexMatcher[T](regex: Regex, func: String => T ): Parser[T] ={
     val ret: Parser[T] = input => {
       val matched = (regex findFirstIn input).mkString
-      Try(func(matched), input.substring(matched.length) )
+      if (!matched.equals(""))
+        Try(func(matched), input.substring(matched.length) )
+      else
+        Failure(throw new ParserException);
     }
     ret.parseoException
   }
