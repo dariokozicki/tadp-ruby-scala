@@ -15,7 +15,7 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
 
   it should "Grupo Caso Base" in {
     //val listaGrupo: Grupos[FiguraAux] = List(triangulo(List("200 @ 50", "101 @ 335", "299 @ 335")))
-    val listaGrupoGrupoFigura = "grupo(grupo(color[23,23,34](triangulo[200 @ 50, 101 @ 335, 299 @ 335]),rectangulo[200 @ 50, 101 @ 335],)grupo(triangulo[100 @ 20, 10 @ 35, 29 @ 33],triangulo[300 @ 50, 401 @ 335, 799 @ 335]))"
+    val listaGrupoGrupoFigura = "grupo(grupo(color[23,23,34](triangulo[200 @ 50, 101 @ 335, 299 @ 335]),rectangulo[200 @ 50, 101 @ 335]),grupo(triangulo[100 @ 20, 10 @ 35, 29 @ 33],triangulo[300 @ 50, 401 @ 335, 799 @ 335]))"
     parsearBloqueEntrada(listaGrupoGrupoFigura)
     /*val listaGrupoTransformacion: Unit =  color(23,23,23)(grupo(List(
       grupo(List(triangulo(List("200 @ 50", "101 @ 335", "299 @ 335")),

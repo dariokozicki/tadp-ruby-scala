@@ -5,21 +5,24 @@ import tadp.internal.TADPDrawingAdapter
 import Combinators._
 import grupo3.ParsersTadp._
 
+import scala.util.Try
+
 object TADPDrawingApp extends App {
 
   sealed trait Figuras
-  sealed trait Transformaciones
+  sealed trait FigurasContenedores
   case class Triangulo(puntos: List[Puntos]) extends Figuras
   case class Rectangulo(puntos: List[Puntos]) extends Figuras
   case class Circulo(puntos: Puntos, radio: Int) extends Figuras
-  case class ColorTransformacion(r:Int,G:Int,b:Int, grupo:List[Figuras]) extends Transformaciones
-  case class Rotacion(grados:Double,grupo: List[Figuras]) extends Transformaciones
-  case class Escala(x: Double, y:Double,grupo: List[Figuras]) extends Transformaciones
-  case class Traslacion(x:Double,y:Double,grupo: List[Figuras]) extends Transformaciones
+  case class ColorTransformacion(r:Int,G:Int,b:Int, grupo:List[Figuras]) extends Figuras
+  case class Rotacion(grados:Double,grupo: List[Figuras]) extends Figuras
+  case class Escala(x: Double, y:Double,grupo: List[Figuras]) extends Figuras
+  case class Traslacion(x:Double,y:Double,grupo: List[Figuras]) extends Figuras
   case class Grupo(figuras: List[Figura]) extends Figuras
 
   type Puntos = (Double,Double)
   type Figura = (List[String] => FiguraAux)
+  type DrawFigura = (TADPDrawingAdapter => Figura => TADPDrawingAdapter)
   type FiguraAux = Figuras
   type Agrupacion = Figura
   type Grupos[T] = List[T]
@@ -34,35 +37,25 @@ object TADPDrawingApp extends App {
     Triangulo(puntos)
   }
 
-  def dibujarConTransformacion(transformacion: Transformaciones) = {
-    transformacion match {
-      case ColorTransformacion(r,g,b,grupo) => TADPDrawingAdapter
-        .forScreen { adapter =>
-          val adaptador = adapter.beginColor(Color.rgb(r, g, b))
-          dibujarGrupo(adaptador,grupo)
-        }
-      case Rotacion(grados,grupo) => TADPDrawingAdapter
-        .forScreen { adapter =>
-          val adaptador = adapter.beginRotate(grados)
-          dibujarGrupo(adaptador,grupo)
-        }
-    }
+  def dibujarFigurasContenedores(adaptador:TADPDrawingAdapter, grupo:List[Figuras]): TADPDrawingAdapter ={
+    grupo.head match {
+        case Triangulo(puntos)           => dibujarFigurasContenedores(adaptador.triangle(puntos.head,puntos(0),puntos(1)), grupo.tail)
+        case Rectangulo(puntos)          => dibujarFigurasContenedores(adaptador.rectangle(puntos.head,puntos(0)),grupo.tail)
+        case Circulo(puntos,radio)       => dibujarFigurasContenedores(adaptador.circle(puntos,radio),grupo.tail)
+        case Grupo(figuras) => dibujarFigurasContenedores(adaptador, grupo.tail)
+        case ColorTransformacion(r,g,b,grupo) => dibujarFigurasContenedores(adaptador.beginColor(Color.rgb(r, g, b)),grupo.tail).end()
+        case Rotacion(grados,grupo) => dibujarFigurasContenedores(adaptador.beginRotate(grados),grupo.tail).end()
+        case Escala(x,y,grupo) => dibujarFigurasContenedores(adaptador.beginScale(x,y),grupo.tail).end()
+      }
   }
 
-  def dibujarGrupo(adaptador:TADPDrawingAdapter, grupo: List[Figuras]): Unit ={
-    //cambiar por Foldeo que reciba y devuelva el nuevo adapter
-    for(nodo <- grupo)
-      nodo match {
-        case Triangulo(puntos)           => adaptador.triangle(puntos.head,puntos(0),puntos(1))
-        case Rectangulo(puntos)          => adaptador.rectangle(puntos.head,puntos(0))
-        case Circulo(puntos,radio)       => adaptador.circle(puntos,radio)
-        case Grupo(figuras) => dibujarGrupo(adaptador,grupo)
-        /*case ColorTransformacion(r,g,b,figuras) => {
-          adaptador.beginColor(Color.rgb(r,g,b))
-          dibujarGrupo(adaptador,figuras)
-        }*/
-      }
-    adaptador.end()
+  //Tomo cabeza, le paso la cola de Figuras(por si es grupo o transformacion), y el adapter
+  //Devuelvo la cola de la cual tomare la siguiente figura, y el adapter devuelto por la anterior
+  //como se cuando hago el adapter.end para las transformaciones?
+  def dibujar(adaptador:TADPDrawingAdapter, grupos: List[Figura]): Unit ={
+
+    //grupos.fold( (adaptador, _) => _.)
+
   }
 
 
@@ -105,27 +98,54 @@ object TADPDrawingApp extends App {
   }
 
   def parsearBloqueEntrada(entrada: String): Unit ={
-    val resultParser = string("grupo(")(entrada)
-    print(resultParser)
+    //val resultParser = string("grupo(")(entrada)
+    //print(resultParser)
+
+    val resultadoParseoGeneral = parserEntrada.*(entrada)
+
+    //("grupo", ( ("triangulo", (((23,34),(34,34)),(34,34))) ("rectangulo")  ) )
+
+
   }
 
-  val parserEntrada = (parserTransformacion <|> parserGrupo) <|> parserFigura <|> parserPunto
+  //Grupos de tipos de parsers
+  //Parser general para aplicar recursividad
+  val parserEntrada = (parserTransformacion <|> parserGrupo) <|> parserFigura
   val parserFigura = (parserTriangulo <|> parserCirculo) <|> parserRectangulo
-  val parserGrupo = string("grupo(")
-  var parserTransformacion = (parserColor <|> parserRotacion) <|> (parserTraslacion <|> parserEscala)
-  val parserTriangulo = string("triangulo[")
-  val parserCirculo = string("circulo[")
-  val parserRectangulo = string("rectangulo[")
-  val parserColor = string("color[")
-  val parserRotacion = string("rotacion[")
-  val parserTraslacion = string("traslacion[")
-  val parserEscala = string("escala[")
-  val parserPunto = integer.sepBy(string(" @ "))
+  val parserGrupo = (string("grupo") <~ parserInicioGrupo) <> parserEntradaLista <> parserFinTransformacion
+  var parserTransformacion = (parserColor <|> parserRotacion) <|> (parserTraslacion <|> parserEscala) <> parserEntradaLista <> parserFinTransformacion
+
+  //FIGURAS
+  val parserTriangulo = (string("triangulo")  <~ parserInicioFigura) <>  parserTrianguloPuntos
+  val parserTrianguloPuntos = ( parserPunto <> parserPunto)  <> (parserPunto <~ parserFinFigura)
+  val parserCirculo = (string("circulo") <~ parserInicioFigura) <>  parserCirculoPuntos
+  val parserCirculoPuntos = parserPunto <> (integer <~ parserFinFigura)
+  val parserRectangulo = (string("rectangulo") <~ parserInicioFigura) <>  parserRectanguloPuntos
+  val parserRectanguloPuntos =  ( parserPunto <> parserPunto)  <> ((parserPunto <> parserPunto) <~ parserFinFigura)
+
+  //TRANSFORMACIONES
+  val parserEscala = (string("escala") <~ parserInicioFigura) <> (parserEscalaPuntos <~ parserInicioGrupo )
+  val parserEscalaPuntos = (parserValor <> parserValor)  <~ parserFinFigura
+  val parserRotacion = (string("rotacion") <~ parserInicioFigura) <>  parserRotacionPuntos
+  val parserTraslacion = (string("traslacion") <~ parserInicioFigura) <>  parserRotacionPuntos
+  val parserRotacionPuntos = (parserValor <~ parserFinFigura)
+  val parserColor = (string("color") <~ parserInicioFigura) <> parserColorPuntos
+  val parserColorPuntos =  (parserValor <> parserValor) <> (parserValor <~ parserFinFigura)
+
+  //AUXILIARES
+  val parserPunto = double.sepBy(string(" @ ")).sepBy(string(", ")).opt
+  val parserValor = double.sepBy(string(", "))
   val parserInicioGrupo = char('(')
-  val parserFinGrupo = char(')')
+  val parserFinTransformacion = char(')')
+  val parserInicioFigura = char('[')
   val parserFinFigura = char(']')
-  val parserValor = integer.sepBy(char(','))
+  val parserEntradaLista:  Parser[((Serializable, Any), (Serializable, Any))] = parserEntrada.sepBy(string(", "))
+
+
 
 }
+
+
+
 
 

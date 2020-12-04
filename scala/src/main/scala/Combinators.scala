@@ -27,6 +27,7 @@ package object Combinators {
     ((resultadoParser1,_), restoParser2) <- (parser1 <> segundoParser) (entrada)
   } yield (resultadoParser1, restoParser2)
 
+    //Hacer recursivo
     def sepBy[R](parserSeparador: Parser[R]): Parser[(T,T)] = (parser1 <~ parserSeparador) <> parser1
 
     def satisfies(condicion: T => Boolean): Parser[T] = {
