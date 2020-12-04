@@ -29,7 +29,7 @@ object ParsersTadp {
       if (!matched.equals(""))
         Try(func(matched), input.substring(matched.length) )
       else
-        Failure(throw new ParserException);
+        Failure(throw new ParserException("No se pudo encontrar '" + regex + "' en '" + input + "'"));
     }
     ret.parseoException
   }
