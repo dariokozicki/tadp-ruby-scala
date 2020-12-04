@@ -3,7 +3,7 @@ package tadp
 import grupo3.ParsersTadp._
 import org.scalatest.flatspec._
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
-
+import Combinators._
 import scala.util.Try
 
 
@@ -92,9 +92,6 @@ class ParserTest extends AnyFlatSpec{
   it should "Test de integer con un string negativo -33" in{
     testAssertVerdeYResultado(integer("-33"),(-33,""))
   }
-  it should "Test de integer con un string numerico y letras 33AA" in{
-    testAssertFallo(integer("33AA"))
-  }
 
   // Tests de Double
   it should "Test de double con string vacio " in{
@@ -104,7 +101,13 @@ class ParserTest extends AnyFlatSpec{
     testAssertVerdeYResultado(double("234.22"),(234.22,""))
   }
   it should "Test de double con string 234.22A " in{
-    testAssertFallo(double("234.22A"))
+    testAssertVerdeYResultado(double("234.22A"), (234.22, "A"))
+  }
+
+  it should "test integer nuevo" in {
+    val mifunc = char('-').opt <> digit.+
+
+
   }
 }
 

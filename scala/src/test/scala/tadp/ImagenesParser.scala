@@ -1,8 +1,10 @@
 package tadp
 
+import grupo3.ParsersTadp.{char, double, string}
+import Combinators._
 import org.scalatest.flatspec._
 import org.scalatest.matchers._
-import tadp.TADPDrawingApp.{FiguraAux, Grupos, grupo, triangulo, parsearBloqueEntrada}
+import tadp.TADPDrawingApp.{FiguraAux, Grupos, grupo, parsearBloqueEntrada, parserPunto, triangulo}
 
 class ImagenesSpec extends AnyFlatSpec with should.Matchers {
   it should "sumar 1 + 1" in {
@@ -26,6 +28,19 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
     //grupo(listaGrupo)
 
   }
+
+  it should "triangulo" in {
+    //val triangulo = "triangulo[200 @ 50, 101 @ 335, 299 @ 335]"
+    //val trianguloParseado: Any = parsearBloqueEntrada(triangulo)
+    //println(trianguloParseado)
+  }
+
+  it should "punto" in {
+    val punto = "10sadasda"
+    val p1 = double(punto)
+    println(p1)
+  }
+
 
 }
 

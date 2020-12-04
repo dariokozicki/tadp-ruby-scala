@@ -27,6 +27,41 @@ object TADPDrawingApp extends App {
   type Agrupacion = Figura
   type Grupos[T] = List[T]
 
+
+  //Grupos de tipos de parsers
+
+  //AUXILIARES
+  def parserPunto: Parser[Option[((Double, Double), (Double, Double))]] = double.sepBy(string(" @ ")).sepBy(string(", ")).opt
+  def parserValor: Parser[(Double, Double)] = double.sepBy(string(", "))
+  def parserInicioGrupo: Parser[Char] = char('(')
+  def parserFinTransformacion: Parser[Char] = char(')')
+  def parserInicioFigura: Parser[Char] = char('[')
+  def parserFinFigura: Parser[Char] = char(']')
+  def parserEntradaLista:  Parser[((Serializable, Any), (Serializable, Any))] = parserEntrada.sepBy(string(", "))
+
+  //FIGURAS
+  def parserTrianguloPuntos: Parser[((Option[((Double, Double), (Double, Double))], Option[((Double, Double), (Double, Double))]), Option[((Double, Double), (Double, Double))])] = ( parserPunto <> parserPunto)  <> (parserPunto <~ parserFinFigura)
+  def parserTriangulo: Parser[(String, ((Option[((Double, Double), (Double, Double))], Option[((Double, Double), (Double, Double))]), Option[((Double, Double), (Double, Double))]))] = (string("triangulo")  <~ parserInicioFigura) <>  parserTrianguloPuntos
+  def parserCirculoPuntos: Parser[(Option[((Double, Double), (Double, Double))], Int)] = parserPunto <> (integer <~ parserFinFigura)
+  def parserCirculo: Parser[(String, (Option[((Double, Double), (Double, Double))], Int))] = (string("circulo") <~ parserInicioFigura) <>  parserCirculoPuntos
+  def parserRectanguloPuntos: Parser[((Option[((Double, Double), (Double, Double))], Option[((Double, Double), (Double, Double))]), (Option[((Double, Double), (Double, Double))], Option[((Double, Double), (Double, Double))]))] =  ( parserPunto <> parserPunto)  <> ((parserPunto <> parserPunto) <~ parserFinFigura)
+  def parserRectangulo: Parser[(String, ((Option[((Double, Double), (Double, Double))], Option[((Double, Double), (Double, Double))]), (Option[((Double, Double), (Double, Double))], Option[((Double, Double), (Double, Double))])))] = (string("rectangulo") <~ parserInicioFigura) <>  parserRectanguloPuntos
+
+  //TRANSFORMACIONES
+  def parserEscalaPuntos: Parser[((Double, Double), (Double, Double))] = (parserValor <> parserValor)  <~ parserFinFigura
+  def parserEscala: Parser[(String, ((Double, Double), (Double, Double)))] = (string("escala") <~ parserInicioFigura) <> (parserEscalaPuntos <~ parserInicioGrupo )
+  def parserRotacionPuntos: Parser[(Double, Double)] = (parserValor <~ parserFinFigura)
+  def parserRotacion: Parser[(String, (Double, Double))] = (string("rotacion") <~ parserInicioFigura) <>  parserRotacionPuntos
+  def parserTraslacion: Parser[(String, (Double, Double))] = (string("traslacion") <~ parserInicioFigura) <>  parserRotacionPuntos
+  def parserColorPuntos: Parser[(((Double, Double), (Double, Double)), (Double, Double))] =  (parserValor <> parserValor) <> (parserValor <~ parserFinFigura)
+  def parserColor: Parser[(String, (((Double, Double), (Double, Double)), (Double, Double)))] = (string("color") <~ parserInicioFigura) <> parserColorPuntos
+
+  //Parser general para aplicar recursividad
+  def parserFigura: Parser[(String, (Serializable, Any))] = (parserTriangulo <|> parserCirculo) <|> parserRectangulo
+  def parserGrupo: Parser[((String, ((Serializable, Any), (Serializable, Any))), Char)] = (string("grupo") <~ parserInicioGrupo) <> parserEntradaLista <> parserFinTransformacion
+  def parserTransformacion: Parser[(((String, (Any, Any)), ((Serializable, Any), (Serializable, Any))), Char)] = (parserColor <|> parserRotacion) <|> (parserTraslacion <|> parserEscala) <> parserEntradaLista <> parserFinTransformacion
+  def parserEntrada: Parser[(Serializable, Any)] = (parserTransformacion <|> parserGrupo) <|> parserFigura
+
   def dibujarTriangulo(adaptador: TADPDrawingAdapter, puntos: List[Puntos] ): Unit ={
     adaptador.triangle(puntos.head,puntos(0),puntos(1)).end()
   }
@@ -97,52 +132,15 @@ object TADPDrawingApp extends App {
     }
   }
 
-  def parsearBloqueEntrada(entrada: String): Unit ={
+  def parsearBloqueEntrada(entrada: String): Any ={
     //val resultParser = string("grupo(")(entrada)
     //print(resultParser)
-
     val resultadoParseoGeneral = parserEntrada.*(entrada)
 
     //("grupo", ( ("triangulo", (((23,34),(34,34)),(34,34))) ("rectangulo")  ) )
 
-
+    return resultadoParseoGeneral;
   }
-
-  //Grupos de tipos de parsers
-  //Parser general para aplicar recursividad
-  val parserEntrada = (parserTransformacion <|> parserGrupo) <|> parserFigura
-  val parserFigura = (parserTriangulo <|> parserCirculo) <|> parserRectangulo
-  val parserGrupo = (string("grupo") <~ parserInicioGrupo) <> parserEntradaLista <> parserFinTransformacion
-  var parserTransformacion = (parserColor <|> parserRotacion) <|> (parserTraslacion <|> parserEscala) <> parserEntradaLista <> parserFinTransformacion
-
-  //FIGURAS
-  val parserTriangulo = (string("triangulo")  <~ parserInicioFigura) <>  parserTrianguloPuntos
-  val parserTrianguloPuntos = ( parserPunto <> parserPunto)  <> (parserPunto <~ parserFinFigura)
-  val parserCirculo = (string("circulo") <~ parserInicioFigura) <>  parserCirculoPuntos
-  val parserCirculoPuntos = parserPunto <> (integer <~ parserFinFigura)
-  val parserRectangulo = (string("rectangulo") <~ parserInicioFigura) <>  parserRectanguloPuntos
-  val parserRectanguloPuntos =  ( parserPunto <> parserPunto)  <> ((parserPunto <> parserPunto) <~ parserFinFigura)
-
-  //TRANSFORMACIONES
-  val parserEscala = (string("escala") <~ parserInicioFigura) <> (parserEscalaPuntos <~ parserInicioGrupo )
-  val parserEscalaPuntos = (parserValor <> parserValor)  <~ parserFinFigura
-  val parserRotacion = (string("rotacion") <~ parserInicioFigura) <>  parserRotacionPuntos
-  val parserTraslacion = (string("traslacion") <~ parserInicioFigura) <>  parserRotacionPuntos
-  val parserRotacionPuntos = (parserValor <~ parserFinFigura)
-  val parserColor = (string("color") <~ parserInicioFigura) <> parserColorPuntos
-  val parserColorPuntos =  (parserValor <> parserValor) <> (parserValor <~ parserFinFigura)
-
-  //AUXILIARES
-  val parserPunto = double.sepBy(string(" @ ")).sepBy(string(", ")).opt
-  val parserValor = double.sepBy(string(", "))
-  val parserInicioGrupo = char('(')
-  val parserFinTransformacion = char(')')
-  val parserInicioFigura = char('[')
-  val parserFinFigura = char(']')
-  val parserEntradaLista:  Parser[((Serializable, Any), (Serializable, Any))] = parserEntrada.sepBy(string(", "))
-
-
-
 }
 
 

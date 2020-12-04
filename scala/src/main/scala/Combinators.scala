@@ -1,4 +1,4 @@
-import grupo3.ParsersTadp.{Parser, ParserException, Salida}
+import grupo3.ParsersTadp.{Parser, ParserException, Salida, char, double, integer, string}
 
 import scala.util.Success
 
