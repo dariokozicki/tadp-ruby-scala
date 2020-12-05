@@ -59,12 +59,17 @@ class CombinatorsTest extends AnyFlatSpec{
     testAssertVerdeYResultado(char('e').*("eeeepa"), (List('e','e','e','e'),"pa"))
   }
 
+  it should "Test de * con palabras" in {
+    val res = string("hola").*("holaholahola")
+    testAssertVerdeYResultado(res, (List("hola","hola","hola"), ""))
+  }
+
   it should "Test de * sin matches" in {
     testAssertVerdeYResultado(char('e').*("no hubo suerte"), (List(),"no hubo suerte"))
   }
 
   it should "Test de sepBy con numeros y espacios" in {
-    testAssertVerdeYResultado(integer.sepBy(string(" "))("12 34 56 78 "), (List(12,34,56,78), ""))
+    testAssertVerdeYResultado(integer.sepBy(string(" "))("12 34 56 78"), (List(12,34,56,78), ""))
   }
 
   it should "Test de opt" in {
@@ -77,6 +82,11 @@ class CombinatorsTest extends AnyFlatSpec{
     val res2 = char('-').+("hola")
     testAssertVerdeYResultado(res, (List('-','-','-'), "hola"))
     testAssertFallo(res2)
+  }
+
+  it should "Test de + con palabras" in {
+    val res = string("hola").+("holaholahola")
+    testAssertVerdeYResultado(res, (List("hola","hola","hola"), ""))
   }
 
 }

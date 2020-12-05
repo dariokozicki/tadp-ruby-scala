@@ -28,7 +28,7 @@ package object Combinators {
     } yield (resultadoParser1, restoParser2)
 
     //Hacer recursivo
-    def sepBy[R](parserSeparador: Parser[R]): Parser[List[T]] = (parser1 <~ (parserSeparador.opt)).*
+    def sepBy[R](parserSeparador: Parser[R]): Parser[List[T]] = (parser1 <~ (parserSeparador.opt)).+
 
     def opt: Parser[Option[T]] = entrada => {
       try {
