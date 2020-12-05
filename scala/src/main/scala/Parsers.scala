@@ -11,12 +11,13 @@ object ParsersTadp {
   type Salida[+T] = (T, Entrada)
   type Parser[+T] = Entrada => Try[Salida[T]]
   type Punto = List[Double]
-  type Puntos = List[Punto]
-  type Triangulo = (String, Puntos)
-  type Rectangulo = Triangulo
+  type FiguraPuntos = (String, List[Punto])
+  type Triangulo = FiguraPuntos
+  type Rectangulo = FiguraPuntos
   type Radio = Double
   type Circulo = (String,(Punto, Radio))
-
+  type Figura = (String, Equals with Serializable)
+  type Grupo = (String, List[Figura])
 
   final case class ParserException(message: String = "Error de Parseo") extends Exception(message)
 
@@ -45,7 +46,7 @@ object ParsersTadp {
 
   val parserPunto: Parser[Punto] = double.sepBy(string(" @ "))
 
-  val parserPuntos: Parser[Puntos] = parserPunto.sepBy(string(", "))
+  val parserPuntos: Parser[List[Punto]] = parserPunto.sepBy(string(", "))
 
   val parserTriangulo: Parser[Triangulo] = string("triangulo") <~ char('[') <> parserPuntos <~ char(']')
 
@@ -55,4 +56,7 @@ object ParsersTadp {
     string("circulo") <~ char('[') <> (parserPunto <~ string(", ") <> double) <~ char(']')
   }
 
+  def parserGrupoSimple: Parser[Grupo] = {
+    string("grupo") <~ char('(') <> (parserCirculo <|> parserRectangulo <|> parserTriangulo).sepBy(string(", "))  <~ char(')')
+  }
 }

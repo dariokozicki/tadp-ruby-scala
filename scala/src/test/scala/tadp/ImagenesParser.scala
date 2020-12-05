@@ -1,6 +1,6 @@
 package tadp
 
-import grupo3.ParsersTadp.{ParserException, Salida, char, double, parserCirculo, parserPunto, parserPuntos, parserRectangulo, parserTriangulo, string}
+import grupo3.ParsersTadp.{ParserException, Salida, char, double, parserCirculo, parserGrupoSimple, parserPunto, parserPuntos, parserRectangulo, parserTriangulo, string}
 import Combinators._
 import org.scalatest.flatspec._
 import org.scalatest.matchers._
@@ -37,12 +37,6 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
 
   }
 
-  it should "triangulo" in {
-    //val triangulo = "triangulo[200 @ 50, 101 @ 335, 299 @ 335]"
-    //val trianguloParseado: Any = parsearBloqueEntrada(triangulo)
-    //println(trianguloParseado)
-  }
-
   it should "punto 10 @ 20" in {
     val punto = "10 @ 20"
     val puntoParseado = parserPunto(punto)
@@ -73,7 +67,67 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
     testAssertVerdeYResultado(circuloParseado, (("circulo",(List(200.0,350.0), 100.0)),""))
   }
 
-  
+ /* it should "identificar figura" in {
+    val triangulo = "triangulo[10 @ 20, 30 @ 40, 50 @ 60]"
+    val trianguloParseado = parserFigura(triangulo)
+    testAssertVerdeYResultado(trianguloParseado, (("triangulo",List(List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0))),""))
+  }*/
+
+  it should "grupo loco" in {
+    var grupo = "grupo(circulo[200 @ 350, 100], triangulo[10 @ 20, 30 @ 40, 50 @ 60], rectangulo[10 @ 20, 30 @ 40, 50 @ 60, 70 @ 80])"
+    val grupoParseado = parserGrupoSimple(grupo)
+    testAssertVerdeYResultado(grupoParseado,
+      (
+        ("grupo",
+          List(
+            ("circulo",
+              (List(200.0,350.0),
+                100.0
+              )
+            ),
+            ("triangulo",
+              List(
+                List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0)
+              )
+            ),
+            ("rectangulo",
+              List(
+                List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0), List(70.0,80.0)
+              )
+            )
+          )
+        ),""))
+  }
+
+  it should "grupo anidado" in {
+    var grupo = "grupo(circulo[200 @ 350, 100], grupo(triangulo[10 @ 20, 30 @ 40, 50 @ 60], rectangulo[10 @ 20, 30 @ 40, 50 @ 60, 70 @ 80]))"
+    val grupoParseado = parserGrupoSimple(grupo)
+    testAssertVerdeYResultado(grupoParseado,
+      (
+        ("grupo",
+          List(
+            ("circulo",
+              (List(200.0,350.0),
+                100.0
+              )
+            ),
+            ("grupo",
+              List(
+                ("triangulo",
+                  List(
+                    List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0)
+                  )
+                ),
+                ("rectangulo",
+                  List(
+                    List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0), List(70.0,80.0)
+                  )
+                )
+              )
+            )
+          )
+        ),""))
+  }
 }
 
 

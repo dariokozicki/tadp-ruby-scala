@@ -12,7 +12,13 @@ package object Combinators {
 
     def parseoException: Parser[T] = parser1(_).recover { case _ => throw new ParserException }
 
-    def <|>[R >: T, G <: R](segundoParser: Parser[G]): Parser[R] = entrada => parser1(entrada).recoverWith{case _ => segundoParser(entrada)}
+    def <|>[R >: T, G <: R](segundoParser: Parser[G]): Parser[R] = entrada => {
+      try {
+        parser1(entrada).recoverWith { case _ => segundoParser(entrada) }
+      } catch{
+        case ex: ParserException => segundoParser(entrada)
+      }
+    }
 
     def <>[G](segundoParser: Parser[G]): Parser[(T,G)] = entrada => for {
       (resultadoParser1, restoDelResultadoParser1) <- parser1(entrada)
