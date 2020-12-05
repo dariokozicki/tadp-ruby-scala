@@ -17,7 +17,7 @@ class SimplificadorTest extends AnyFlatSpec with should.Matchers {
   it should "test simplificar color dentro de color" in {
     val color = "color[255,255,255](color[255,255,255](rectangulo[10 @ 20, 30 @ 40]))"
     val colorParsed = parserEntrada(color)
-    val colorFixed = simplificarColorAnidado(colorParsed.get._1)
+    val colorFixed = simplificar(colorParsed.get._1)
     assertResult(("color", (List(255.0,255.0,255.0), ("rectangulo", (List(List(10.0,20.0), List(30.0,40.0)))))))(colorFixed)
   }
 
@@ -63,5 +63,20 @@ class SimplificadorTest extends AnyFlatSpec with should.Matchers {
         )
       )
     )(rotFixed)
+  }
+
+  it should "multiplificar los factores de la escala" in {
+    val escala = "escala[2,3](escala[3,5](circulo[0 @ 5, 10]))"
+    val escalaParsed = parserEntrada(escala)
+    val escalaFixed = simplificar(escalaParsed.get._1)
+    assertResult(
+      (
+        "escala",
+        (
+          List(6.0,15.0),
+          ("circulo", (List(0.0,5.0), 10.0))
+        )
+      )
+    )(escalaFixed)
   }
 }
