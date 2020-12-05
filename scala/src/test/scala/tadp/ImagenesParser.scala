@@ -1,10 +1,12 @@
 package tadp
 
-import grupo3.ParsersTadp.{ParserException, Salida, char, double, parserCirculo, parserColor, parserGrupo, parserPunto, parserPuntos, parserRectangulo, parserTriangulo, string}
+import grupo3.ParsersTadp.{ParserException, Salida, char, double, parserCirculo, parserColor, parserEntrada, parserGrupo, parserPunto, parserPuntos, parserRectangulo, parserRotacion, parserTriangulo, string}
 import Combinators._
 import org.scalatest.flatspec._
 import org.scalatest.matchers._
-import tadp.TADPDrawingApp.{FiguraAux, Grupos, grupo, parsearBloqueEntrada, triangulo}
+import scalafx.scene.paint.Color
+import tadp.TADPDrawingApp.{dibujarFigurasContenedores, dibujarScreen, parsearBloqueEntrada}
+import tadp.internal.TADPDrawingAdapter
 
 import scala.util.Try
 
@@ -55,6 +57,12 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
     testAssertVerdeYResultado(trianguloParseado, (("triangulo",List(List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0))),""))
   }
 
+  it should "triangulo invalido" in {
+    val triangulo = "triangulo[10 @ 20, 30 @ 40, 50 @ 60, 70 @ 80]"
+    val trianguloParseado = parserTriangulo(triangulo)
+    testAssertFallo(trianguloParseado)
+  }
+
   it should "rectangulo loco" in {
     val rectangulo = "rectangulo[10 @ 20, 30 @ 40]"
     val rectanguloParseado = parserRectangulo(rectangulo)
@@ -65,6 +73,12 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
     val circulo = "circulo[200 @ 350, 100]"
     val circuloParseado = parserCirculo(circulo)
     testAssertVerdeYResultado(circuloParseado, (("circulo",(List(200.0,350.0), 100.0)),""))
+  }
+
+  it should "circulo invalido" in {
+    val circulo = "circulo[200 @ 350, 300 @ 400, 100]"
+    val circuloParseado = parserCirculo(circulo)
+    testAssertFallo(circuloParseado)
   }
 
  /* it should "identificar figura" in {
@@ -197,6 +211,57 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
         )
       ), ""))
   }
+
+  it should "Test de rotaciones" in {
+    val rotacion = "rotacion[370](rectangulo[300 @ 0, 500 @ 200])"
+    val rotacionParseada = parserRotacion(rotacion)
+    testAssertVerdeYResultado(rotacionParseada,
+      (("rotacion", (List(10.0), ("rectangulo", List(List(300.0,0.0), List(500.0,200))))),
+        ""
+      )
+    )
+  }
+
+  it should "Test de entrada" in {
+    var grupo = "grupo(triangulo[10 @ 20, 30 @ 40, 50 @ 60], grupo(circulo[200 @ 350, 100], grupo(triangulo[10 @ 20, 30 @ 40, 50 @ 60], rectangulo[10 @ 20, 30 @ 40])))"
+    val grupoParseado = parserEntrada(grupo)
+    testAssertVerdeYResultado(grupoParseado,
+      (
+        ("grupo",
+          List(
+            ("triangulo",
+              List(
+                List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0)
+              )
+            ),
+            ("grupo",
+              List(
+                ("circulo",
+                  (List(200.0,350.0),
+                    100.0
+                  )
+                ),
+                ("grupo",
+                  List(
+                    ("triangulo",
+                      List(
+                        List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0)
+                      )
+                    ),
+                    ("rectangulo",
+                      List(
+                        List(10.0, 20.0), List(30.0, 40.0)
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        ),""))
+  }
+
+
 }
 
 

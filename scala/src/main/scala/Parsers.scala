@@ -1,5 +1,6 @@
 package grupo3
 import Combinators._
+import com.sun.tools.attach.VirtualMachine.list
 import grupo3.ParsersTadp.char
 
 import scala.util
@@ -12,9 +13,6 @@ object ParsersTadp {
   type Salida[+T] = (T, Entrada)
   type Parser[+T] = Entrada => Try[Salida[T]]
   type Punto = List[Double]
-  type RGB = Punto
-  type CantidadRotacion = Double
-  type CantidadTraslacion = (Double,Double)
   type FiguraPuntos = (String, List[Punto])
   type Triangulo = FiguraPuntos
   type Rectangulo = FiguraPuntos
@@ -22,9 +20,8 @@ object ParsersTadp {
   type Circulo = (String,(Punto, Radio))
   type Figura = (String, Equals with Serializable)
   type Grupo = (String, List[Figura])
-  type Color = (String, (RGB, Figura))
-  type Rotacion = (String, (CantidadRotacion, Figura))
-  type Traslacion = (String, (CantidadTraslacion, Figura))
+  type UnidadTransformacion = List[Double]
+  type Transformacion = (String,(UnidadTransformacion, Figura))
 
   final case class ParserException(message: String = "Error de Parseo") extends Exception(message)
 
@@ -47,6 +44,18 @@ object ParsersTadp {
     }
   }
 
+  def toTuple2(list: List[Double]): (Double, Double) = {
+    list match {
+      case List(a, b) => (a, b)
+    }
+  }
+
+  def toTuple3(list: List[Double]): (Double, Double, Double) = {
+    list match {
+      case List(a, b, c) => (a, b, c)
+    }
+  }
+
   val integer: Parser[Int] = try {regexMatcher("^-?[0-9]+".r, Integer.parseInt)}
 
   val double: Parser[Double] = try {regexMatcher("^-?[0-9]+(\\.[0-9]+)?".r, java.lang.Double.parseDouble)}
@@ -57,36 +66,70 @@ object ParsersTadp {
 
   val parserPuntos: Parser[List[Punto]] = parserPunto.sepBy(parserSeparador(','))
 
-  val parserTriangulo: Parser[Triangulo] = string("triangulo") <~ parserSeparador('[') <> parserPuntos <~ parserSeparador(']')
+  val parserTriangulo: Parser[Triangulo] = string("triangulo") <~ parserSeparador('[') <>
+    parserPuntos.satisfies(list => list.length == 3) <~
+    parserSeparador(']')
 
   val parserRectangulo: Parser[Rectangulo] =
-    string("rectangulo") <~ parserSeparador('[') <> parserPuntos <~ parserSeparador(']')
+    string("rectangulo") <~ parserSeparador('[') <> parserPuntos.satisfies(list => list.length == 2) <~ parserSeparador(']')
 
   val parserCirculo: Parser[Circulo] = {
-    string("circulo") <~ parserSeparador('[') <> (parserPunto <~ string(", ") <> double) <~ parserSeparador(']')
+    string("circulo") <~
+      parserSeparador('[') <>
+      ((parserPunto <~ parserSeparador(',')) <>
+      double) <~ parserSeparador(']')
   }
 
   def parserFigura: Parser[Figura] = {
     parserCirculo <|> parserRectangulo <|> parserTriangulo
   }
 
-  def parserRGB: Parser[RGB] = {
+  def parserUnidades: Parser[UnidadTransformacion] = {
     double.sepBy(parserSeparador(','))
   }
 
   def parserGrupo: Parser[Grupo] = {
     entrada => {
       (string("grupo") <~ parserSeparador('(') <>
-        (parserFigura <|> parserGrupo).sepBy(parserSeparador(','))  <~ parserSeparador(')'))(entrada)
+        (parserEntrada).sepBy(parserSeparador(','))  <~ parserSeparador(')'))(entrada)
     }
   }
 
-  def parserColor: Parser[Color] = {
-    entrada => {
-      (string("color") <~ parserSeparador('[')
-        <> (parserRGB <~ parserSeparador(']')
+  def parserTransformacion(nombre: String, condicion: Punto => Boolean): String => Try[((String, (Punto, (String, Equals with Serializable))), Entrada)] = {
+    entrada: String => {
+      (string(nombre) <~ parserSeparador('[')
+        <> (parserUnidades.satisfies(condicion) <~ parserSeparador(']')
+        <~ parserSeparador('(') <> ( parserEntrada )
+        <~ parserSeparador(')')))(entrada)
+    }
+  }
+
+  def parserColor: Parser[Transformacion] = {
+    parserTransformacion("color",list => list.length == 3 && list.forall(num => num >= 0 && num <= 255))
+  }
+
+  def parserRotacion: Parser[Transformacion] = {
+    entrada: String => {
+      (string("rotacion") <~ parserSeparador('[')
+        <> (parserUnidades.satisfies(list => list.length == 1 ).map((angs => angs.map(angulo => angulo % 360))) <~ parserSeparador(']')
         <~ parserSeparador('(') <> ( parserFigura <|> parserGrupo )
         <~ parserSeparador(')')))(entrada)
     }
   }
+
+  def parserTraslacion: Parser[Transformacion] = {
+    parserTransformacion(("traslacion"), list => list.length == 2)
+  }
+
+  def parserEscala: Parser[Transformacion] = {
+    parserTransformacion("escala", list => list.length == 2)
+  }
+
+  def parserEntrada: Parser[Figura] = {
+    entrada: String => {
+      (parserFigura <|> parserGrupo <|> parserRotacion <|> parserColor <|> parserTraslacion <|> parserEscala)(entrada)
+    }
+  }
+
+
 }
