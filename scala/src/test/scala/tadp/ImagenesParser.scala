@@ -1,6 +1,6 @@
 package tadp
 
-import grupo3.ParsersTadp.{ParserException, Salida, char, double, parserCirculo, parserGrupo, parserGrupoSimple, parserPunto, parserPuntos, parserRectangulo, parserTriangulo, string}
+import grupo3.ParsersTadp.{ParserException, Salida, char, double, parserCirculo, parserGrupo, parserPunto, parserPuntos, parserRectangulo, parserTriangulo, string}
 import Combinators._
 import org.scalatest.flatspec._
 import org.scalatest.matchers._
@@ -56,9 +56,9 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "rectangulo loco" in {
-    val rectangulo = "rectangulo[10 @ 20, 30 @ 40, 50 @ 60, 70 @ 80]"
+    val rectangulo = "rectangulo[10 @ 20, 30 @ 40]"
     val rectanguloParseado = parserRectangulo(rectangulo)
-    testAssertVerdeYResultado(rectanguloParseado,(("rectangulo",List(List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0), List(70.0,80.0))),""))
+    testAssertVerdeYResultado(rectanguloParseado,(("rectangulo",List(List(10.0, 20.0), List(30.0, 40.0))),""))
   }
 
   it should "circulo loco" in {
@@ -74,8 +74,8 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
   }*/
 
   it should "grupo loco" in {
-    var grupo = "grupo(circulo[200 @ 350, 100], triangulo[10 @ 20, 30 @ 40, 50 @ 60], rectangulo[10 @ 20, 30 @ 40, 50 @ 60, 70 @ 80])"
-    val grupoParseado = parserGrupoSimple(grupo)
+    var grupo = "grupo(circulo[200 @ 350, 100], triangulo[10 @ 20, 30 @ 40, 50 @ 60], rectangulo[10 @ 20, 30 @ 40])"
+    val grupoParseado = parserGrupo(grupo)
     testAssertVerdeYResultado(grupoParseado,
       (
         ("grupo",
@@ -92,7 +92,7 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
             ),
             ("rectangulo",
               List(
-                List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0), List(70.0,80.0)
+                List(10.0, 20.0), List(30.0, 40.0)
               )
             )
           )
@@ -100,7 +100,7 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "grupo anidado" in {
-    var grupo = "grupo(circulo[200 @ 350, 100], grupo(triangulo[10 @ 20, 30 @ 40, 50 @ 60], rectangulo[10 @ 20, 30 @ 40, 50 @ 60, 70 @ 80]))"
+    var grupo = "grupo(circulo[200 @ 350, 100], grupo(triangulo[10 @ 20, 30 @ 40, 50 @ 60], rectangulo[10 @ 20, 30 @ 40]))"
     val grupoParseado = parserGrupo(grupo)
     testAssertVerdeYResultado(grupoParseado,
       (
@@ -120,7 +120,7 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
                 ),
                 ("rectangulo",
                   List(
-                    List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0), List(70.0,80.0)
+                    List(10.0, 20.0), List(30.0, 40.0)
                   )
                 )
               )
@@ -128,6 +128,47 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
           )
         ),""))
   }
+
+  it should "grupo anidado en otro grupo anidado" in {
+      var grupo = "grupo(triangulo[10 @ 20, 30 @ 40, 50 @ 60], grupo(circulo[200 @ 350, 100], grupo(triangulo[10 @ 20, 30 @ 40, 50 @ 60], rectangulo[10 @ 20, 30 @ 40])))"
+      val grupoParseado = parserGrupo(grupo)
+      testAssertVerdeYResultado(grupoParseado,
+        (
+          ("grupo",
+            List(
+              ("triangulo",
+                List(
+                  List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0)
+                )
+              ),
+              ("grupo",
+                List(
+                  ("circulo",
+                    (List(200.0,350.0),
+                      100.0
+                    )
+                  ),
+                  ("grupo",
+                    List(
+                      ("triangulo",
+                        List(
+                          List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0)
+                        )
+                      ),
+                      ("rectangulo",
+                        List(
+                          List(10.0, 20.0), List(30.0, 40.0)
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          ),""))
+  }
+
+
 }
 
 

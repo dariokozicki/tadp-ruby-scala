@@ -107,12 +107,6 @@ class ParserTest extends AnyFlatSpec{
   it should "Test de double con string 234.22A " in{
     testAssertVerdeYResultado(double("234.22A"), (234.22, "A"))
   }
-
-  it should "test integer nuevo" in {
-    val mifunc = char('-').opt <> digit.+
-
-
-  }
 }
 
 
