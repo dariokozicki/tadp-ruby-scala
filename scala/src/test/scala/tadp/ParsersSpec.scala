@@ -17,6 +17,10 @@ class ParserTest extends AnyFlatSpec{
   }
 
   //Tests de parser char
+  it should "Test de anychar" in {
+    testAssertVerdeYResultado(anyChar("hola"), ('h', "ola"))
+  }
+
   it should "Test de parser char con 'H' y '' " in{
     testAssertFallo(char('H')(""))
   }

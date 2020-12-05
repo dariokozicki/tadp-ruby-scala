@@ -18,12 +18,12 @@ object ParsersTadp {
     ret.parseoException
   }
 
-  val char: Char => Parser[Char] = char => anyChar.condicion(_ == char)
-  val digit: Parser[Char] = anyChar.condicion(_.isDigit)
+  val char: Char => Parser[Char] = char => anyChar.satisfies(_ == char)
+  val digit: Parser[Char] = anyChar.satisfies(_.isDigit)
 
-  val string: String => Parser[String] = string => regexMatcher(string.r, (input) => input)
+  val string: String => Parser[String] = string => try{ regexMatcher(string.r, (input) => input)}
 
-  def regexMatcher[T](regex: Regex, func: String => T ): Parser[T] ={
+  def regexMatcher[T](regex: Regex, func: String => T ): Parser[T] = try {
     val ret: Parser[T] = input => {
       val matched = (regex findFirstIn input).mkString
       if (!matched.equals(""))
@@ -34,13 +34,7 @@ object ParsersTadp {
     ret.parseoException
   }
 
-  val integer: Parser[Int] = try{
-    lazy val regex = "-?[0-9]+".r
-    regexMatcher(regex, Integer.parseInt)
-  }
+  val integer: Parser[Int] = try {regexMatcher("-?[0-9]+".r, Integer.parseInt)}
 
-  val double: Parser[Double] = {
-    lazy val regex = "-?[0-9]+(\\.[0-9]+)?".r
-    regexMatcher(regex, java.lang.Double.parseDouble)
-  }
+  val double: Parser[Double] = try {regexMatcher("-?[0-9]+(\\.[0-9]+)?".r, java.lang.Double.parseDouble)}
 }

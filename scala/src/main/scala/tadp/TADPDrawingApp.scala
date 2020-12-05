@@ -30,7 +30,7 @@ object TADPDrawingApp extends App {
 
   //Grupos de tipos de parsers
 
-  //AUXILIARES
+  /*//AUXILIARES
   def parserPunto: Parser[Option[((Double, Double), (Double, Double))]] = double.sepBy(string(" @ ")).sepBy(string(", ")).opt
   def parserValor: Parser[(Double, Double)] = double.sepBy(string(", "))
   def parserInicioGrupo: Parser[Char] = char('(')
@@ -61,7 +61,7 @@ object TADPDrawingApp extends App {
   def parserGrupo: Parser[((String, ((Serializable, Any), (Serializable, Any))), Char)] = (string("grupo") <~ parserInicioGrupo) <> parserEntradaLista <> parserFinTransformacion
   def parserTransformacion: Parser[(((String, (Any, Any)), ((Serializable, Any), (Serializable, Any))), Char)] = (parserColor <|> parserRotacion) <|> (parserTraslacion <|> parserEscala) <> parserEntradaLista <> parserFinTransformacion
   def parserEntrada: Parser[(Serializable, Any)] = (parserTransformacion <|> parserGrupo) <|> parserFigura
-
+*/
   def dibujarTriangulo(adaptador: TADPDrawingAdapter, puntos: List[Puntos] ): Unit ={
     adaptador.triangle(puntos.head,puntos(0),puntos(1)).end()
   }
@@ -135,11 +135,11 @@ object TADPDrawingApp extends App {
   def parsearBloqueEntrada(entrada: String): Any ={
     //val resultParser = string("grupo(")(entrada)
     //print(resultParser)
-    val resultadoParseoGeneral = parserEntrada.*(entrada)
+    //val resultadoParseoGeneral = parserEntrada.*(entrada)
 
     //("grupo", ( ("triangulo", (((23,34),(34,34)),(34,34))) ("rectangulo")  ) )
 
-    return resultadoParseoGeneral;
+   // return resultadoParseoGeneral;
   }
 }
 

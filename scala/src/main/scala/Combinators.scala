@@ -1,16 +1,16 @@
 import grupo3.ParsersTadp.{Parser, ParserException, Salida, char, double, integer, string}
 
-import scala.util.Success
+import scala.util.{Failure, Success, Try}
 
 
 package object Combinators {
   implicit class ParserExtendido[T](parser1: Parser[T]) {
-    def condicion(condicion: T => Boolean): Parser[T] = {
+    def satisfies(condicion: T => Boolean): Parser[T] = {
       val ret: Parser[T] = parser1(_).filter { case (resultado, _) => condicion(resultado) }
       ret.parseoException
     }
 
-  def parseoException: Parser[T] = parser1(_).recover { case _ => throw new ParserException }
+    def parseoException: Parser[T] = parser1(_).recover { case _ => throw new ParserException }
 
     def <|>[R >: T, G <: R](segundoParser: Parser[G]): Parser[R] = entrada => parser1(entrada).recoverWith{case _ => segundoParser(entrada)}
 
@@ -23,25 +23,27 @@ package object Combinators {
       ((_,resultadoParser2), restoDelResultadoParser2) <- (parser1 <> segundoParser) (entrada)
     } yield (resultadoParser2, restoDelResultadoParser2)
 
-  def <~[R](segundoParser: Parser[R]): Parser[T] = entrada => for {
-    ((resultadoParser1,_), restoParser2) <- (parser1 <> segundoParser) (entrada)
-  } yield (resultadoParser1, restoParser2)
+    def <~[R](segundoParser: Parser[R]): Parser[T] = entrada => for {
+      ((resultadoParser1,_), restoParser2) <- (parser1 <> segundoParser) (entrada)
+    } yield (resultadoParser1, restoParser2)
 
     //Hacer recursivo
-    def sepBy[R](parserSeparador: Parser[R]): Parser[(T,T)] = (parser1 <~ parserSeparador) <> parser1
+    def sepBy[R](parserSeparador: Parser[R]): Parser[List[T]] = (parser1 <~ (parserSeparador.opt)).*
 
-    def satisfies(condicion: T => Boolean): Parser[T] = {
-      val retorno: Parser[T] = parser1(_).filter{ case (result,_) => condicion(result)}
-      retorno.parseoException
+    def opt: Parser[Option[T]] = entrada => {
+      try {
+        parser1(entrada).map(tuple => (Some(tuple._1), tuple._2))
+      } catch{
+        case ex: ParserException => Try(None, entrada)
+      }
     }
-
-    def opt: Parser[Option[T]] = entrada => parser1.map(Some(_))(entrada).recover{ case _ => (None, entrada)}
 
     def map[R](funcionTransformacion: T => R): Parser[R] = entrada => for {
       (resultado, restoTransformacion) <- parser1(entrada)
     } yield (funcionTransformacion(resultado), restoTransformacion)
 
     def * : Parser[List[T]] = input => Success(kleene((List(), input)))
+
     private def kleene(accum: Salida[List[T]]): Salida[List[T]] = {
       parser1(accum._2).fold(
         _ => accum,
@@ -49,8 +51,7 @@ package object Combinators {
       )
     }
 
-    // Tendria que ver como validar que se aplique una vez
-    def + : Parser[List[T]] = parser1.*
+    def + : Parser[List[T]] = parser1.*.satisfies(_.nonEmpty)
 
   }
 }
