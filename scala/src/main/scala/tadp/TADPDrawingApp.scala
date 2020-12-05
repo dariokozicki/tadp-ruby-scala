@@ -28,6 +28,7 @@ object TADPDrawingApp extends App {
   type Grupos[T] = List[T]
 
 
+
   //Grupos de tipos de parsers
 
   /*//AUXILIARES

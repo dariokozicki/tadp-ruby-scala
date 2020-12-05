@@ -1,12 +1,20 @@
 package tadp
 
-import grupo3.ParsersTadp.{char, double, string}
+import grupo3.ParsersTadp.{ParserException, Salida, char, double, parserCirculo, parserPunto, parserPuntos, parserRectangulo, parserTriangulo, string}
 import Combinators._
 import org.scalatest.flatspec._
 import org.scalatest.matchers._
-import tadp.TADPDrawingApp.{FiguraAux, Grupos, grupo, parsearBloqueEntrada, parserPunto, triangulo}
+import tadp.TADPDrawingApp.{FiguraAux, Grupos, grupo, parsearBloqueEntrada, triangulo}
+
+import scala.util.Try
 
 class ImagenesSpec extends AnyFlatSpec with should.Matchers {
+  def testAssertVerdeYResultado[T](actualResultado: Try[Salida[T]], resultadoEsperado: Salida[T]): Unit = {
+    actualResultado.get shouldBe resultadoEsperado
+  }
+  def testAssertFallo[T](actualResultado: => Try[Salida[T]]): Unit = {
+    intercept[ParserException] { actualResultado.get }
+  }
   it should "sumar 1 + 1" in {
     1 + 1 shouldEqual 2
   }
@@ -35,13 +43,37 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
     //println(trianguloParseado)
   }
 
-  it should "punto" in {
-    val punto = "10sadasda"
-    val p1 = double(punto)
-    println(p1)
+  it should "punto 10 @ 20" in {
+    val punto = "10 @ 20"
+    val puntoParseado = parserPunto(punto)
+    testAssertVerdeYResultado(puntoParseado, (List(10.0,20.0), ""))
   }
 
+  it should "puntos 10 @ 20, 30 @ 40, 50 @ 60" in {
+    val puntos = "10 @ 20, 30 @ 40, 50 @ 60"
+    val puntosParseados = parserPuntos(puntos)
+    testAssertVerdeYResultado(puntosParseados, (List(List(10.0,20.0), List(30.0,40.0), List(50.0,60.0)), ""))
+  }
 
+  it should "triangulo loco" in {
+    val triangulo = "triangulo[10 @ 20, 30 @ 40, 50 @ 60]"
+    val trianguloParseado = parserTriangulo(triangulo)
+    testAssertVerdeYResultado(trianguloParseado, (("triangulo",List(List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0))),""))
+  }
+
+  it should "rectangulo loco" in {
+    val rectangulo = "rectangulo[10 @ 20, 30 @ 40, 50 @ 60, 70 @ 80]"
+    val rectanguloParseado = parserRectangulo(rectangulo)
+    testAssertVerdeYResultado(rectanguloParseado,(("rectangulo",List(List(10.0, 20.0), List(30.0, 40.0), List(50.0, 60.0), List(70.0,80.0))),""))
+  }
+
+  it should "circulo loco" in {
+    val circulo = "circulo[200 @ 350, 100]"
+    val circuloParseado = parserCirculo(circulo)
+    testAssertVerdeYResultado(circuloParseado, (("circulo",(List(200.0,350.0), 100.0)),""))
+  }
+
+  
 }
 
 
