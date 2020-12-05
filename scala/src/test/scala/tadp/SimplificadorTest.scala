@@ -79,4 +79,19 @@ class SimplificadorTest extends AnyFlatSpec with should.Matchers {
       )
     )(escalaFixed)
   }
+
+  it should "sumar los factores de la traslacion" in {
+    val escala = "traslacion[20,30](traslacion[30,50](circulo[0 @ 5, 10]))"
+    val escalaParsed = parserEntrada(escala)
+    val escalaFixed = simplificar(escalaParsed.get._1)
+    assertResult(
+      (
+        "traslacion",
+        (
+          List(50.0,80.0),
+          ("circulo", (List(0.0,5.0), 10.0))
+        )
+      )
+    )(escalaFixed)
+  }
 }

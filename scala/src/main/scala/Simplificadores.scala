@@ -26,6 +26,8 @@ package object Simplificadores {
         ("rotacion", (List(ang1.head + ang2.head), simplificar(fig)))
       case ("escala", (fact: List[Double], ("escala", (fact2: List[Double], fig: Figura)))) =>
         ("escala", (List(fact.head*fact2.head, fact.last*fact2.last), simplificar(fig)))
+      case ("traslacion", (fact: List[Double], ("traslacion", (fact2:List[Double], fig: Figura)))) =>
+        ("traslacion", (List(fact.head+fact2.head, fact.last+fact2.last), simplificar(fig)))
       case _ => figura
     }
   }
