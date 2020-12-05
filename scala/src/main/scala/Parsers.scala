@@ -1,5 +1,6 @@
 package grupo3
 import Combinators._
+import grupo3.ParsersTadp.char
 
 import scala.util
 import scala.util.matching.Regex
@@ -11,6 +12,9 @@ object ParsersTadp {
   type Salida[+T] = (T, Entrada)
   type Parser[+T] = Entrada => Try[Salida[T]]
   type Punto = List[Double]
+  type RGB = Punto
+  type CantidadRotacion = Double
+  type CantidadTraslacion = (Double,Double)
   type FiguraPuntos = (String, List[Punto])
   type Triangulo = FiguraPuntos
   type Rectangulo = FiguraPuntos
@@ -18,6 +22,9 @@ object ParsersTadp {
   type Circulo = (String,(Punto, Radio))
   type Figura = (String, Equals with Serializable)
   type Grupo = (String, List[Figura])
+  type Color = (String, (RGB, Figura))
+  type Rotacion = (String, (CantidadRotacion, Figura))
+  type Traslacion = (String, (CantidadTraslacion, Figura))
 
   final case class ParserException(message: String = "Error de Parseo") extends Exception(message)
 
@@ -44,25 +51,42 @@ object ParsersTadp {
 
   val double: Parser[Double] = try {regexMatcher("^-?[0-9]+(\\.[0-9]+)?".r, java.lang.Double.parseDouble)}
 
-  val parserPunto: Parser[Punto] = double.sepBy(string(" @ "))
+  def parserSeparador(customChar: Char): Parser[((List[Char], Char), List[Char])] = (char(' ').*) <> char(customChar) <> (char(' ').*)
 
-  val parserPuntos: Parser[List[Punto]] = parserPunto.sepBy(string(", "))
+  val parserPunto: Parser[Punto] = double.sepBy(parserSeparador('@'))
 
-  val parserTriangulo: Parser[Triangulo] = string("triangulo") <~ char('[') <> parserPuntos <~ char(']')
+  val parserPuntos: Parser[List[Punto]] = parserPunto.sepBy(parserSeparador(','))
 
-  val parserRectangulo: Parser[Rectangulo] = string("rectangulo") <~ char('[') <> parserPuntos <~ char(']')
+  val parserTriangulo: Parser[Triangulo] = string("triangulo") <~ parserSeparador('[') <> parserPuntos <~ parserSeparador(']')
+
+  val parserRectangulo: Parser[Rectangulo] =
+    string("rectangulo") <~ parserSeparador('[') <> parserPuntos <~ parserSeparador(']')
 
   val parserCirculo: Parser[Circulo] = {
-    string("circulo") <~ char('[') <> (parserPunto <~ string(", ") <> double) <~ char(']')
+    string("circulo") <~ parserSeparador('[') <> (parserPunto <~ string(", ") <> double) <~ parserSeparador(']')
   }
 
   def parserFigura: Parser[Figura] = {
     parserCirculo <|> parserRectangulo <|> parserTriangulo
   }
 
+  def parserRGB: Parser[RGB] = {
+    double.sepBy(parserSeparador(','))
+  }
+
   def parserGrupo: Parser[Grupo] = {
     entrada => {
-      (string("grupo") <~ char('(') <> (parserFigura <|> parserGrupo).sepBy(string(", "))  <~ char(')'))(entrada)
+      (string("grupo") <~ parserSeparador('(') <>
+        (parserFigura <|> parserGrupo).sepBy(parserSeparador(','))  <~ parserSeparador(')'))(entrada)
+    }
+  }
+
+  def parserColor: Parser[Color] = {
+    entrada => {
+      (string("color") <~ parserSeparador('[')
+        <> (parserRGB <~ parserSeparador(']')
+        <~ parserSeparador('(') <> ( parserFigura <|> parserGrupo )
+        <~ parserSeparador(')')))(entrada)
     }
   }
 }
