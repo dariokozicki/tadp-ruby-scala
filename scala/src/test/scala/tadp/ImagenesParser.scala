@@ -1,6 +1,6 @@
 package tadp
 
-import grupo3.ParsersTadp.{ParserException, Salida, char, double, parserCirculo, parserGrupoSimple, parserPunto, parserPuntos, parserRectangulo, parserTriangulo, string}
+import grupo3.ParsersTadp.{ParserException, Salida, char, double, parserCirculo, parserGrupo, parserGrupoSimple, parserPunto, parserPuntos, parserRectangulo, parserTriangulo, string}
 import Combinators._
 import org.scalatest.flatspec._
 import org.scalatest.matchers._
@@ -101,7 +101,7 @@ class ImagenesSpec extends AnyFlatSpec with should.Matchers {
 
   it should "grupo anidado" in {
     var grupo = "grupo(circulo[200 @ 350, 100], grupo(triangulo[10 @ 20, 30 @ 40, 50 @ 60], rectangulo[10 @ 20, 30 @ 40, 50 @ 60, 70 @ 80]))"
-    val grupoParseado = parserGrupoSimple(grupo)
+    val grupoParseado = parserGrupo(grupo)
     testAssertVerdeYResultado(grupoParseado,
       (
         ("grupo",

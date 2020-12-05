@@ -56,7 +56,15 @@ object ParsersTadp {
     string("circulo") <~ char('[') <> (parserPunto <~ string(", ") <> double) <~ char(']')
   }
 
+  def parserFigura: Parser[Figura] = {
+    parserCirculo <|> parserRectangulo <|> parserTriangulo
+  }
+
   def parserGrupoSimple: Parser[Grupo] = {
-    string("grupo") <~ char('(') <> (parserCirculo <|> parserRectangulo <|> parserTriangulo).sepBy(string(", "))  <~ char(')')
+    string("grupo") <~ char('(') <> (parserFigura).sepBy(string(", "))  <~ char(')')
+  }
+
+  def parserGrupo: Parser[Grupo] = {
+    string("grupo") <~ char('(') <> (parserFigura <|> parserGrupoSimple).sepBy(string(", "))  <~ char(')')
   }
 }
