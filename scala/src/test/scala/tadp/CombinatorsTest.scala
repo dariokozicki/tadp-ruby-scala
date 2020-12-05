@@ -49,7 +49,7 @@ class CombinatorsTest extends AnyFlatSpec{
   val numeroDeTelefono: Parser[List[Int]] = integer.sepBy(char('-'))
 
   it should "Test de Combinators sepBy con '“1234-5678”' " in{
-    testAssertVerdeYResultado(numeroDeTelefono("1234-5678-9101-1213"),(List(1234,5678),""))
+    testAssertVerdeYResultado(numeroDeTelefono("1234-5678"),(List(1234,5678),""))
   }
   it should "Test de Combinators sepBy con 'holaChau' " in{
     testAssertFallo(numeroDeTelefono("holachau"))

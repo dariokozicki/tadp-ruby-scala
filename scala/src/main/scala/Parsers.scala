@@ -13,9 +13,8 @@ object ParsersTadp {
 
   final case class ParserException(message: String = "Error de Parseo") extends Exception(message)
 
-  val anyChar: Parser[Char] = {
-    val ret: Parser[Char] = input => Try(input(0), input.substring(1))
-    ret.parseoException
+  val anyChar: Parser[Char] = try {
+     regexMatcher(".".r, (input) => input(0))
   }
 
   val char: Char => Parser[Char] = char => anyChar.satisfies(_ == char)
@@ -23,15 +22,14 @@ object ParsersTadp {
 
   val string: String => Parser[String] = string => try{ regexMatcher(string.r, (input) => input)}
 
-  def regexMatcher[T](regex: Regex, func: String => T ): Parser[T] = try {
-    val ret: Parser[T] = input => {
+  def regexMatcher[T](regex: Regex, func: String => T): Parser[T] = try {
+    input => {
       val matched = (regex findFirstIn input).mkString
-      if (!matched.equals(""))
+      if (!matched.equals("") && !"".equals(input))
         Try(func(matched), input.substring(matched.length) )
       else
-        Failure(throw new ParserException("No se pudo encontrar '" + regex + "' en '" + input + "'"));
+        Failure(throw ParserException("No se pudo encontrar '" + regex + "' en '" + input + "'"));
     }
-    ret.parseoException
   }
 
   val integer: Parser[Int] = try {regexMatcher("-?[0-9]+".r, Integer.parseInt)}

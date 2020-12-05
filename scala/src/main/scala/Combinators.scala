@@ -32,7 +32,7 @@ package object Combinators {
 
     def opt: Parser[Option[T]] = entrada => {
       try {
-        parser1(entrada).map(tuple => (Some(tuple._1), tuple._2))
+        parser1(entrada).map(tuple => (Some(tuple._1), tuple._2)).fold(ex => Try(None, entrada), res => Try(res))
       } catch{
         case ex: ParserException => Try(None, entrada)
       }
@@ -45,10 +45,14 @@ package object Combinators {
     def * : Parser[List[T]] = input => Success(kleene((List(), input)))
 
     private def kleene(accum: Salida[List[T]]): Salida[List[T]] = {
-      parser1(accum._2).fold(
-        _ => accum,
-        { case (nuevoResultado, nuevoResto) => kleene((accum._1 :+ nuevoResultado, nuevoResto)) }
-      )
+      try {
+        parser1(accum._2).fold(
+          _ => accum,
+          { case (nuevoResultado, nuevoResto) => kleene((accum._1 :+ nuevoResultado, nuevoResto)) }
+        )
+      }catch{
+        case _ : ParserException => accum
+      }
     }
 
     def + : Parser[List[T]] = parser1.*.satisfies(_.nonEmpty)
