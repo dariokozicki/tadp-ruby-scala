@@ -112,7 +112,7 @@ object ParsersTadp {
     entrada: String => {
       (string("rotacion") <~ parserSeparador('[')
         <> (parserUnidades.satisfies(list => list.length == 1 ).map((angs => angs.map(angulo => angulo % 360))) <~ parserSeparador(']')
-        <~ parserSeparador('(') <> ( parserFigura <|> parserGrupo )
+        <~ parserSeparador('(') <> ( parserEntrada )
         <~ parserSeparador(')')))(entrada)
     }
   }

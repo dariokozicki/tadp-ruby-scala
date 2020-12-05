@@ -27,7 +27,8 @@ package object Simplificadores {
         val values = figuras.head._2._1
         if (figuras.forall(fig => fig._1.equals(name)) && isTransformacion(name))
           (name, (values, ("grupo",figuras.map(fig => simplificar(fig._2._2))))) else ("grupo", figuras.map(simplificar))
-
+      case ("rotacion", (ang1: List[Double], ("rotacion", (ang2: List[Double], fig: Figura)))) =>
+        ("rotacion", (List(ang1.head + ang2.head), simplificar(fig)))
       case _ => figura
     }
   }

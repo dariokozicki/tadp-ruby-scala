@@ -46,4 +46,22 @@ class SimplificadorTest extends AnyFlatSpec with should.Matchers {
       )
     )(grupoFixed)
   }
+
+  it should "sumar las rotaciones" in {
+    val rotaciones = "rotacion[300](rotacion[10](rectangulo[100 @ 200, 300 @ 400]))"
+    val rotParsed = parserEntrada(rotaciones)
+    val rotFixed = simplificar(rotParsed.get._1)
+    assertResult(
+      (
+        "rotacion",
+        (
+          List(310.0),
+          (
+            "rectangulo",
+            List(List(100.0,200.0),List(300.0,400.0))
+          )
+        )
+      )
+    )(rotFixed)
+  }
 }
